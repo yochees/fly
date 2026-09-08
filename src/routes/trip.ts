@@ -3,7 +3,7 @@ import { eq, asc } from 'drizzle-orm';
 import { db } from '../db/index.ts';
 import { trips, segments, tripSlugs } from '../db/schema.ts';
 import { normaliseSlug, isValidSlug } from '../lib/slug.ts';
-import { tripPage, tripIcs, type View } from '../views/trip.ts';
+import { tripPage, tripIcs, type View, type IcsMode } from '../views/trip.ts';
 
 export const tripRoutes = new Hono();
 
@@ -49,7 +49,7 @@ tripRoutes.get('/t/:key{[A-Za-z0-9]{12,32}}', async (c) => {
 tripRoutes.get('/t/:file{[A-Za-z0-9]{12,32}\\.ics}', async (c) => {
   const found = await loadPrivate(c.req.param('file').slice(0, -4));
   if (!found) return c.text('Not found', 404);
-  return ics(found.trip, found.segs, 'private');
+  return ics(c, found.trip, found.segs, 'private');
 });
 
 tripRoutes.get('/:slug{[A-Za-z0-9]{4,16}}', async (c) => {
@@ -62,11 +62,13 @@ tripRoutes.get('/:slug{[A-Za-z0-9]{4,16}}', async (c) => {
 tripRoutes.get('/:file{[A-Za-z0-9]{4,16}\\.ics}', async (c) => {
   const found = await loadPublic(c.req.param('file').slice(0, -4));
   if (!found || found.redirectTo) return c.text('Not found', 404);
-  return ics(found.trip, found.segs, 'public');
+  return ics(c, found.trip, found.segs, 'public');
 });
 
-function ics(trip: typeof trips.$inferSelect, segs: (typeof segments.$inferSelect)[], view: View) {
-  return new Response(tripIcs(trip, segs, view), {
+function ics(c: { req: { query: (k: string) => string | undefined } }, trip: typeof trips.$inferSelect, segs: (typeof segments.$inferSelect)[], view: View) {
+  // One long event is the default; ?mode=flights gives one event per leg.
+  const mode: IcsMode = c.req.query('mode') === 'flights' ? 'flights' : 'trip';
+  return new Response(tripIcs(trip, segs, view, mode), {
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
       'Content-Disposition': `attachment; filename="${trip.slug}.ics"`,
