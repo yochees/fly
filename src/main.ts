@@ -21,6 +21,6 @@ app.get('/', (c) => c.text(`Forward a ticket to ${config.openmail.inboxAddress} 
 startWorker({ 'process-email': ({ emailId }) => processEmail(emailId) });
 
 serve({ fetch: app.fetch, port: config.port }, (info) => {
-  console.log(`[venga] listening on http://localhost:${info.port}`);
-  console.log(`[venga] admin: http://localhost:${info.port}/admin?token=${config.adminToken}`);
+  console.log(`[fly] listening on http://localhost:${info.port}`);
+  console.log(`[fly] admin: http://localhost:${info.port}/admin?token=${config.adminToken}`);
 });

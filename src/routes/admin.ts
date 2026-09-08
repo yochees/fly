@@ -30,7 +30,7 @@ ${rows.map((e) => `<tr>
   <td>${esc(e.status)}${e.error ? ' &#9888;' : ''}</td>
   <td><a href="/admin/emails/${esc(e.id)}?token=${esc(token)}">open</a></td>
 </tr>`).join('')}</table>`;
-  return c.html(page('venga admin', body));
+  return c.html(page('fly admin', body));
 });
 
 admin.get('/admin/emails/:id', async (c) => {

@@ -7,7 +7,7 @@ function need(name: string): string {
 export const config = {
   port: Number(process.env.PORT ?? 3000),
   publicBaseUrl: (process.env.PUBLIC_BASE_URL ?? 'http://localhost:3000').replace(/\/$/, ''),
-  databaseUrl: process.env.DATABASE_URL ?? 'file:./data/venga.db',
+  databaseUrl: process.env.DATABASE_URL ?? 'file:./data/fly.db',
   storageDir: process.env.STORAGE_DIR ?? './data/files',
   adminToken: need('ADMIN_TOKEN'),
 

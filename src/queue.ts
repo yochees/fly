@@ -47,7 +47,7 @@ export function startWorker(handlers: Record<string, Handler>, intervalMs = 2000
       } catch (err) {
         const attempts = job.attempts + 1;
         const message = (err as Error).stack ?? String(err);
-        console.error(`[venga] job ${job.kind} failed (attempt ${attempts}):`, message);
+        console.error(`[fly] job ${job.kind} failed (attempt ${attempts}):`, message);
         if (attempts >= job.maxAttempts) {
           await db.update(jobs).set({ doneAt: new Date().toISOString(), lockedAt: null, error: message }).where(eq(jobs.id, job.id));
         } else {
@@ -64,7 +64,7 @@ export function startWorker(handlers: Record<string, Handler>, intervalMs = 2000
 
   const loop = async () => {
     while (!stopped) {
-      try { await tick(); } catch (err) { console.error('[venga] worker tick failed:', err); }
+      try { await tick(); } catch (err) { console.error('[fly] worker tick failed:', err); }
       await new Promise((r) => setTimeout(r, intervalMs));
     }
   };

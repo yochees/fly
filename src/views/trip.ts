@@ -44,7 +44,7 @@ ${trip.needsReview ? '<div class="flag">Some details were unclear when this was 
 <h1>${esc(trip.title ?? 'Your trip')}</h1>
 <p class="sub">${range}</p>
 ${segs.map(segmentCard).join('')}
-<footer>venga &middot; ${esc(trip.slug)} &middot; <a href="/${esc(trip.slug)}.ics">add to calendar</a></footer>`;
+<footer>fly &middot; ${esc(trip.slug)} &middot; <a href="/${esc(trip.slug)}.ics">add to calendar</a></footer>`;
 
   return page(trip.title ?? `Trip ${trip.slug}`, body);
 }
@@ -53,7 +53,7 @@ ${segs.map(segmentCard).join('')}
 export function tripIcs(trip: Trip, segs: Segment[]): string {
   const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const fmt = (v: string | null) => (v ? v.replace(/[-:]/g, '').slice(0, 15) : '');
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//venga//EN', 'CALSCALE:GREGORIAN'];
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//fly//EN', 'CALSCALE:GREGORIAN'];
 
   segs.forEach((s, i) => {
     if (!s.departLocal) return;

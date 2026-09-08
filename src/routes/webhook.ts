@@ -17,7 +17,7 @@ webhook.post('/hooks/openmail', async (c) => {
 
   const event = JSON.parse(raw) as MessageReceived;
   if (event.event !== 'message.received') {
-    console.log(`[venga] ignoring event ${event.event}`);
+    console.log(`[fly] ignoring event ${event.event}`);
     return c.text('ok', 200);
   }
 

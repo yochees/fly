@@ -1,4 +1,4 @@
-# venga
+# fly
 
 Forward a ticket to **fly@omail.sh** and get back a short link, for example
 `https://fly.diz.lt/PCQP9D`, that shows the trip on one clean page.

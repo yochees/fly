@@ -98,7 +98,7 @@ export async function processEmail(emailId: string): Promise<void> {
   await db.update(emails).set({ status: 'parsed', error: null }).where(eq(emails.id, emailId));
 
   const url = `${config.publicBaseUrl}/${applied.slug}`;
-  console.log(`[venga] ${email.fromAddr} -> ${url} (${applied.created ? 'new' : 'updated'}, ${target.reason})`);
+  console.log(`[fly] ${email.fromAddr} -> ${url} (${applied.created ? 'new' : 'updated'}, ${target.reason})`);
 
   if (config.sendConfirmation) {
     const body = applied.created
@@ -108,7 +108,7 @@ export async function processEmail(emailId: string): Promise<void> {
       await reply(email.fromAddr, email.threadId, body, `Your trip: ${applied.slug}`);
     } catch (err) {
       // A failed reply must not lose the trip. Send limits are 200 a day.
-      console.warn('[venga] reply failed:', (err as Error).message);
+      console.warn('[fly] reply failed:', (err as Error).message);
     }
   }
 }
