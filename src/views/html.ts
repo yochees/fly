@@ -108,9 +108,12 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
   background: var(--accent); box-shadow: 0 0 0 3px var(--paper);
 }
 .stop.arrive::before { background: var(--paper); border: 2.5px solid var(--accent-line); }
-/* The rail is one long line, so the last stop hides the tail below its dot. */
+/* The rail is one long line, so the last stop hides the tail below its dot.
+   The offset is measured from the stop, which starts one gutter right of
+   the rail, so the gutter has to come back off. */
 .stop:last-child::after {
-  content: ""; position: absolute; left: var(--rail-x);
+  content: ""; position: absolute;
+  left: calc(var(--rail-x) - var(--gutter));
   top: calc(var(--mark-top) + var(--dot) / 2); bottom: -1rem; width: 2px; background: var(--paper);
 }
 .when { font-size: var(--when-size); line-height: var(--when-line); font-weight: 700; letter-spacing: -.015em; }
