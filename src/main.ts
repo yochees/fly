@@ -7,6 +7,7 @@ import { processEmail } from './pipeline/process-email.ts';
 import { webhook } from './routes/webhook.ts';
 import { tripRoutes } from './routes/trip.ts';
 import { admin } from './routes/admin.ts';
+import { homePage } from './views/home.ts';
 
 await migrate();
 
@@ -15,7 +16,7 @@ app.get('/health', (c) => c.json({ ok: true }));
 app.route('/', webhook);
 app.route('/', admin);
 app.route('/', tripRoutes);
-app.get('/', (c) => c.text(`Forward a ticket to ${config.openmail.inboxAddress} and you get a link back.`));
+app.get('/', (c) => c.html(homePage()));
 
 // One process holds the web server and the worker, which is why SQLite fits.
 startWorker({ 'process-email': ({ emailId }) => processEmail(emailId) });
