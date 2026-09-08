@@ -201,14 +201,21 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .share-note { margin: .7rem 0 0; font-size: .82rem; color: var(--faint); }
 
 /* ---- landing ---- */
-.home-mark { font-family: var(--mono); font-size: .82rem; letter-spacing: .22em;
-  text-transform: uppercase; color: var(--accent); margin: 0 0 1.4rem; }
-.home h1 { font-size: 1.55rem; line-height: 1.35; font-weight: 500; letter-spacing: -.015em;
-  margin: 0 0 1.6rem; text-wrap: pretty; }
-.home-addr { font-family: var(--mono); font-size: .95em; font-weight: 500;
-  color: var(--accent); white-space: nowrap; }
-.home-copy { display: flex; gap: .5rem; }
-.home-note { margin: .9rem 0 0; font-size: .82rem; color: var(--faint); }
+.home h1 {
+  font-size: 1.6rem; line-height: 1.4; font-weight: 500; letter-spacing: -.015em;
+  margin: 0; text-wrap: pretty;
+}
+.addr {
+  font: inherit; font-family: var(--mono); font-size: .93em; font-weight: 500;
+  color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-line);
+  border-radius: 8px; padding: .05em .45em; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .35em; white-space: nowrap;
+}
+.addr:hover { background: var(--paper); }
+.addr:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.copy-icon, .done-icon { width: .82em; height: .82em; opacity: .7; }
+.done-icon, .addr.copied .copy-icon { display: none; }
+.addr.copied .done-icon { display: block; opacity: 1; }
 
 /* ---- admin tables ---- */
 table { border-collapse: collapse; width: 100%; font-size: .88rem; }
