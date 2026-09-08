@@ -1,10 +1,10 @@
-import { readFile } from 'node:fs/promises';
 import OpenAI from 'openai';
 import { config } from '../config.ts';
 import { tripSchema, type Extracted } from './schema.ts';
 import type { OpenMailAttachment } from '../lib/openmail.ts';
 
-const openai = new OpenAI({ apiKey: config.openai.apiKey });
+// Built per call: bindings do not exist while the module is being imported.
+const client = () => new OpenAI({ apiKey: config.openai.apiKey });
 
 /** USD per million tokens. Only used to record what a run cost. */
 const PRICES: Record<string, { in: number; out: number }> = {
@@ -31,7 +31,7 @@ export type ExtractInput = {
   subject: string | null;
   bodyText: string | null;
   receivedAt: string | null;
-  attachments: Array<OpenMailAttachment & { localPath?: string }>;
+  attachments: Array<OpenMailAttachment & { bytes?: ArrayBuffer }>;
   candidates: TripCandidate[];
 };
 
@@ -104,18 +104,27 @@ function buildContent(input: ExtractInput) {
   return parts;
 }
 
+/** Base64 in chunks: one spread of a 120 kB photo blows the argument limit. */
+function toBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 8192) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+  }
+  return btoa(binary);
+}
+
 /** Images and unreadable PDFs go to the model as files, not as OCR text. */
-async function attachFiles(parts: any[], input: ExtractInput) {
+function attachFiles(parts: any[], input: ExtractInput) {
   for (const att of input.attachments) {
-    if (!att.localPath) continue;
+    if (!att.bytes) continue;
     const isImage = IMAGE_TYPES.test(att.contentType ?? '');
     const isPdf = (att.contentType ?? '').includes('pdf');
     const textFailed = !att.parsedText || OCR_METHODS.has(att.extractionMethod ?? '');
     if (!isImage && !(isPdf && textFailed)) continue;
 
-    const bytes = await readFile(att.localPath);
-    if (bytes.byteLength > 18 * 1024 * 1024) continue;
-    const b64 = bytes.toString('base64');
+    if (att.bytes.byteLength > 18 * 1024 * 1024) continue;
+    const b64 = toBase64(att.bytes);
     if (isImage) {
       parts.push({ type: 'input_image', image_url: `data:${att.contentType};base64,${b64}`, detail: 'high' });
     } else {
@@ -126,7 +135,7 @@ async function attachFiles(parts: any[], input: ExtractInput) {
 
 export async function extract(input: ExtractInput, model: string): Promise<ExtractResult> {
   const content = buildContent(input);
-  await attachFiles(content, input);
+  attachFiles(content, input);
 
   const request = {
     model,
@@ -136,7 +145,7 @@ export async function extract(input: ExtractInput, model: string): Promise<Extra
   };
 
   const started = Date.now();
-  const response = await openai.responses.create(request as any);
+  const response = await client().responses.create(request as any);
   const durationMs = Date.now() - started;
 
   const text = (response as any).output_text ?? '';

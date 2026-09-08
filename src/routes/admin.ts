@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { desc, eq } from 'drizzle-orm';
 import { db } from '../db/index.ts';
-import { emails, attachments, parseRuns, trips, segments, jobs } from '../db/schema.ts';
+import { emails, attachments, parseRuns, trips, segments } from '../db/schema.ts';
 import { config } from '../config.ts';
 import { page, esc } from '../views/html.ts';
 import { enqueue } from '../queue.ts';
@@ -20,10 +20,10 @@ const t = (v: string | null) => (v ? v.replace('T', ' ').slice(0, 16) : '');
 admin.get('/admin', async (c) => {
   const token = c.req.query('token')!;
   const rows = await db.select().from(emails).orderBy(desc(emails.createdAt)).limit(100);
-  const pending = await db.select().from(jobs).where(eq(jobs.kind, 'process-email')).orderBy(desc(jobs.createdAt)).limit(5);
+  const waiting = rows.filter((e) => e.status === 'queued').length;
 
   const body = `<h1>Inbox</h1>
-<p class="sub">${rows.length} emails &middot; ${pending.filter((j) => !j.doneAt).length} jobs waiting</p>
+<p class="sub">${rows.length} emails &middot; ${waiting} waiting</p>
 <table><tr><th>When</th><th>From</th><th>Subject</th><th>Status</th><th></th></tr>
 ${rows.map((e) => `<tr>
   <td>${esc(t(e.createdAt))}</td><td>${esc(e.fromAddr)}</td><td>${esc(e.subject ?? '')}</td>
@@ -83,7 +83,7 @@ ${runs.map((r) => `<h3>${esc(r.stage)} &middot; ${esc(r.model)} &middot; ${r.dur
 
 admin.get('/admin/emails/:id/reparse', async (c) => {
   const id = c.req.param('id');
-  await enqueue('process-email', { emailId: id, force: c.req.query('model') ?? 'fast' });
+  await enqueue('process-email', { emailId: id });
   return c.redirect(`/admin/emails/${id}?token=${c.req.query('token')}`);
 });
 

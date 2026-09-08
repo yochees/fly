@@ -5,16 +5,24 @@
  *   npm run ingest            # every message in the inbox
  *   npm run ingest <msgId>    # one message
  */
-import { config } from '../src/config.ts';
-import { migrate } from '../src/db/migrate.ts';
-import { storeInbound } from '../src/pipeline/store.ts';
-import { processEmail } from '../src/pipeline/process-email.ts';
+/**
+ * Runs on your machine, not in the Worker: it reads the inbox over the API and
+ * posts each message to the deployed webhook, signed the way OpenMail signs it.
+ *
+ *   OPENMAIL_API_KEY=... OPENMAIL_INBOX_ID=... OPENMAIL_WEBHOOK_SECRET=... \
+ *   BASE=https://fly.diz.lt node scripts/ingest.ts
+ */
+import { createHmac } from 'node:crypto';
 
-await migrate();
+const API = 'https://api.openmail.sh';
+const key = process.env.OPENMAIL_API_KEY!;
+const inbox = process.env.OPENMAIL_INBOX_ID!;
+const secret = process.env.OPENMAIL_WEBHOOK_SECRET!;
+const base = process.env.BASE ?? 'http://localhost:8787';
 
 const only = process.argv[2];
-const res = await fetch(`${config.openmail.baseUrl}/v1/inboxes/${config.openmail.inboxId}/messages?limit=50`, {
-  headers: { Authorization: `Bearer ${config.openmail.apiKey}` },
+const res = await fetch(`${API}/v1/inboxes/${inbox}/messages?limit=50`, {
+  headers: { Authorization: `Bearer ${key}` },
 });
 if (!res.ok) throw new Error(`list failed: ${res.status} ${await res.text()}`);
 
@@ -28,7 +36,7 @@ for (const m of inbound) {
     event: 'message.received',
     event_id: `backfill_${m.id}`,
     occurred_at: m.createdAt,
-    inbox_id: m.inboxId ?? config.openmail.inboxId,
+    inbox_id: m.inboxId ?? inbox,
     thread_id: m.threadId,
     message: {
       id: m.id,
@@ -44,10 +52,18 @@ for (const m of inbound) {
     },
   };
 
-  const emailId = await storeInbound(JSON.stringify(payload), { 'x-source': 'backfill' }, { queue: false });
-  if (!emailId) { console.log(`${m.id}: already stored, skipped`); continue; }
-  console.log(`${m.id}: stored as ${emailId}, parsing...`);
-  await processEmail(emailId);
+  const body = JSON.stringify(payload);
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const signature = createHmac('sha256', secret).update(`${timestamp}.${body}`).digest('hex');
+  const post = await fetch(`${base}/hooks/openmail`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Timestamp': timestamp,
+      'X-Signature': signature,
+      'X-Event-Id': payload.event_id,
+    },
+    body,
+  });
+  console.log(`${m.id}: ${post.status} ${await post.text()}`);
 }
-
-process.exit(0);

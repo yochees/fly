@@ -32,19 +32,20 @@ export async function processEmail(emailId: string): Promise<void> {
   const [user] = await db.select().from(users).where(eq(users.id, email.userId!));
   const atts = await db.select().from(attachments).where(eq(attachments.emailId, emailId));
 
-  // Keep our own copy of anything the model may need to look at.
+  // Keep our own copy in R2 of anything the model may need to look at.
   const enriched = [];
   for (const a of atts) {
-    let localPath = a.storageKey ? `${config.storageDir}/${a.storageKey}` : undefined;
-    if (!localPath && DOWNLOAD_TYPES.test(a.contentType ?? '')) {
+    let bytes: ArrayBuffer | undefined;
+    if (a.storageKey) {
+      bytes = (await storage.get(a.storageKey)) ?? undefined;
+    } else if (DOWNLOAD_TYPES.test(a.contentType ?? '')) {
       const payload = JSON.parse(email.payload);
       const source = (payload.message?.attachments ?? []).find((x: any) => x.filename === a.filename);
       if (source?.url) {
-        const bytes = await downloadAttachment(source.url);
+        bytes = await downloadAttachment(source.url);
         const key = `${emailId}/${storage.safeName(a.filename)}`;
-        await storage.put(key, bytes);
+        await storage.put(key, bytes, a.contentType ?? undefined);
         await db.update(attachments).set({ storageKey: key }).where(eq(attachments.id, a.id));
-        localPath = `${config.storageDir}/${key}`;
       }
     }
     enriched.push({
@@ -53,7 +54,7 @@ export async function processEmail(emailId: string): Promise<void> {
       sizeBytes: a.sizeBytes ?? undefined,
       parsedText: a.parsedText ?? undefined,
       extractionMethod: a.extractionMethod ?? undefined,
-      localPath,
+      bytes,
     });
   }
 

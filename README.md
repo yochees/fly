@@ -16,8 +16,8 @@ forwarded mail -> OpenMail -> POST /hooks/openmail -> emails table + job
                                      -> reply with the link
 ```
 
-- **One process.** Hono web server and the job worker run together, which is why
-  SQLite is enough. No Redis, no Postgres, no queue service.
+- **It runs on Cloudflare Workers.** D1 for the data, R2 for attachments,
+  Queues for the parse job. Nothing to keep running, and the free tier covers it.
 - **Identity is the sender address.** No sign-up yet. Google and Apple sign-in
   will replace the private key without changing the route.
 - **Flights, trains, ferries, hotels and car hire.** Things that move you become
@@ -39,10 +39,30 @@ forwarded mail -> OpenMail -> POST /hooks/openmail -> emails table + job
 
 ```bash
 npm install
-npm run dev                      # http://localhost:3000
-npm run replay fixtures/lot-outbound.json   # signed test event, no tunnel needed
-npm run ingest                   # pull mail that arrived before the webhook existed
+npm run migrate:local            # apply the schema to the local D1
+npm run dev                      # wrangler dev, http://localhost:8787
+PORT=8787 npm run replay fixtures/lot-outbound.json   # signed test event
 ```
+
+Deploy:
+
+```bash
+npm run migrate:remote
+npm run deploy
+npm run tail                     # live logs
+```
+
+Secrets live in Cloudflare, not in the repo:
+
+```bash
+wrangler secret put OPENMAIL_API_KEY
+wrangler secret put OPENMAIL_INBOX_ID
+wrangler secret put OPENMAIL_WEBHOOK_SECRET
+wrangler secret put OPENAI_API_KEY
+wrangler secret put ADMIN_TOKEN
+```
+
+For local development the same values sit in `.dev.vars`, which is gitignored.
 
 Admin page: `/admin?token=$ADMIN_TOKEN`. It lists every email, shows the raw
 payload and the model output, and can parse an email again with either model.
@@ -59,16 +79,20 @@ See `.env`. The values that matter:
 | `SEND_CONFIRMATION` | reply to the sender with the link |
 | `LLM_MODE` | `live` or `replay` |
 
-## Deploy
+## Where it runs
 
-Hetzner CX22, one Node process behind Caddy, SQLite in `/data`, Litestream
-copying the database to object storage. `fly.diz.lt` points at the box, and the
-OpenMail webhook for the `fly` inbox points at `https://fly.diz.lt/hooks/openmail`.
+Cloudflare Workers on `fly.diz.lt`, with D1 (`fly`), R2 (`fly-files`) and a
+queue (`fly-jobs`). The OpenMail webhook for the `fly` inbox points at
+`https://fly.diz.lt/hooks/openmail`.
+
+The webhook only stores the message and enqueues; the parse happens in the
+queue consumer, because OpenMail wants a 2xx within 15 seconds and a model call
+can take twenty.
 
 ## TODO
 
 - [ ] Google and Apple sign-in for the private view.
 - [ ] Let a user rename the slug. `trip_slugs` already keeps old links alive.
-- [ ] Litestream backup in the deploy.
+
 - [ ] Rate limit per sender address.
 - [ ] Hotel and train segments on the page (the schema already holds them).

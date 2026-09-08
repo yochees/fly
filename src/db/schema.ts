@@ -118,17 +118,3 @@ export const parseRuns = sqliteTable('parse_runs', {
   error: text('error'),
   createdAt: text('created_at').notNull().$defaultFn(now),
 }, (t) => ({ byEmail: index('parse_runs_email_idx').on(t.emailId) }));
-
-/** Job queue. One table, polled by the worker in the same process. */
-export const jobs = sqliteTable('jobs', {
-  id: text('id').primaryKey(),
-  kind: text('kind').notNull(),
-  payload: text('payload').notNull(),
-  runAt: text('run_at').notNull().$defaultFn(now),
-  attempts: integer('attempts').notNull().default(0),
-  maxAttempts: integer('max_attempts').notNull().default(5),
-  lockedAt: text('locked_at'),
-  doneAt: text('done_at'),
-  error: text('error'),
-  createdAt: text('created_at').notNull().$defaultFn(now),
-}, (t) => ({ byRunAt: index('jobs_run_at_idx').on(t.runAt) }));

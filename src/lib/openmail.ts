@@ -60,10 +60,10 @@ async function api(path: string, init: RequestInit = {}): Promise<Response> {
 }
 
 /** Attachment URLs return the bytes directly, with the same bearer key. */
-export async function downloadAttachment(url: string): Promise<Buffer> {
+export async function downloadAttachment(url: string): Promise<ArrayBuffer> {
   const res = await fetch(url, { headers: { Authorization: `Bearer ${config.openmail.apiKey}` } });
   if (!res.ok) throw new Error(`attachment download failed: ${res.status}`);
-  return Buffer.from(await res.arrayBuffer());
+  return res.arrayBuffer();
 }
 
 /** Reply inside the same thread, so a later ticket for the same trip stays linked. */
