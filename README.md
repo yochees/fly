@@ -22,8 +22,8 @@ forwarded mail -> OpenMail -> POST /hooks/openmail -> emails table + job
   will replace the private key without changing the route.
 - **Two views of one trip.**
   `/t/<privateKey>` is the owner page with everything on it.
-  `/<slug>` is the page you share: passenger names and the booking reference are
-  removed. The list of hidden fields is `HIDDEN_IN_PUBLIC` in `src/views/trip.ts`.
+  `/<slug>` is the page you share: passenger names, the booking reference and seat
+  numbers are removed. The list of hidden fields is `HIDDEN_IN_PUBLIC` in `src/views/trip.ts`.
 - **Merging.** A thread id or a booking reference is proof and decides on its own.
   The model only chooses when neither matches.
 - **Every segment has a dedupe key** (carrier, number, date, origin), so the same

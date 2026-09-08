@@ -37,15 +37,17 @@ async function loadPrivate(key: string) {
   return trip ? await withSegments(trip) : null;
 }
 
-tripRoutes.get('/t/:key', async (c) => {
+tripRoutes.get('/t/:key{[A-Za-z0-9]{12,32}}', async (c) => {
   const found = await loadPrivate(c.req.param('key'));
   if (!found) return c.text('Not found', 404);
   c.header('X-Robots-Tag', 'noindex');
   return c.html(tripPage(found.trip, found.segs, 'private'));
 });
 
-tripRoutes.get('/t/:key{[A-Za-z0-9]+}.ics', async (c) => {
-  const found = await loadPrivate(c.req.param('key'));
+// The extension belongs inside the pattern: a suffix after the closing brace
+// is not part of the match, so these routes never fired.
+tripRoutes.get('/t/:file{[A-Za-z0-9]{12,32}\\.ics}', async (c) => {
+  const found = await loadPrivate(c.req.param('file').slice(0, -4));
   if (!found) return c.text('Not found', 404);
   return ics(found.trip, found.segs, 'private');
 });
@@ -57,8 +59,8 @@ tripRoutes.get('/:slug{[A-Za-z0-9]{4,16}}', async (c) => {
   return c.html(tripPage(found.trip, found.segs, 'public'));
 });
 
-tripRoutes.get('/:slug{[A-Za-z0-9]{4,16}}.ics', async (c) => {
-  const found = await loadPublic(c.req.param('slug'));
+tripRoutes.get('/:file{[A-Za-z0-9]{4,16}\\.ics}', async (c) => {
+  const found = await loadPublic(c.req.param('file').slice(0, -4));
   if (!found || found.redirectTo) return c.text('Not found', 404);
   return ics(found.trip, found.segs, 'public');
 });

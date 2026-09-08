@@ -20,7 +20,8 @@ export const CSS = `
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink);
-  font: 16px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  font: 16px/1.5 "DM Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
 h1 { font-size: 1.9rem; letter-spacing: -0.02em; margin: 0 0 .25rem; }
 .sub { color: var(--muted); margin: 0 0 2rem; font-variant-numeric: tabular-nums; }
@@ -29,9 +30,9 @@ h1 { font-size: 1.9rem; letter-spacing: -0.02em; margin: 0 0 .25rem; }
 .seg-top { display: flex; justify-content: space-between; gap: 1rem;
   color: var(--muted); font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
 .route { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .75rem; margin: .8rem 0 .3rem; }
-.code { font-size: 1.7rem; font-weight: 650; letter-spacing: -0.01em; }
+.code { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; }
 .city { color: var(--muted); font-size: .85rem; }
-.time { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.time { font-size: 1.05rem; font-weight: 500; font-variant-numeric: tabular-nums; }
 .arrow { color: var(--line); font-size: 1.3rem; }
 .right { text-align: right; }
 .meta { display: flex; flex-wrap: wrap; gap: .4rem .9rem; margin-top: .7rem;
@@ -50,6 +51,8 @@ pre { background: var(--card); border: 1px solid var(--line); border-radius: 10p
 export function page(title: string, body: string): string {
   return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <title>${esc(title)}</title><style>${CSS}${SHARE_CSS}</style></head>
 <body><div class="wrap">${body}</div></body></html>`;
 }

@@ -20,7 +20,7 @@ type Trip = {
 export type View = 'private' | 'public';
 
 /** One list, so hiding one more field later is a one line change. */
-const HIDDEN_IN_PUBLIC = ['passengers', 'bookingRef'] as const;
+const HIDDEN_IN_PUBLIC = ['passengers', 'bookingRef', 'seat'] as const;
 
 const time = (v: string | null) => (v ? v.slice(11, 16) : '--:--');
 const day = (v: string | null) =>
@@ -33,7 +33,7 @@ function segmentCard(s: Segment, view: View): string {
 
   const meta = [
     show('bookingRef') && s.bookingRef ? `Ref ${esc(s.bookingRef)}` : '',
-    s.seat ? `Seat ${esc(s.seat)}` : '',
+    show('seat') && s.seat ? `Seat ${esc(s.seat)}` : '',
     s.cabin ? esc(s.cabin) : '',
     show('passengers') && pax.length ? esc(pax.join(', ')) : '',
   ].filter(Boolean);
@@ -57,7 +57,7 @@ function shareBox(trip: Trip): string {
     <input class="share-url" value="${esc(url)}" readonly onclick="this.select()">
     <button class="btn" onclick="navigator.clipboard.writeText('${esc(url)}');this.textContent='Copied'">Copy</button>
   </div>
-  <p class="share-note">The shared page hides passenger names and the booking reference.
+  <p class="share-note">The shared page hides passenger names, the booking reference and seat numbers.
     <a href="/${esc(trip.slug)}">See what others get</a>.</p>
 </div>`;
 }
@@ -83,14 +83,19 @@ ${view === 'private' ? shareBox(trip) : ''}
 /** Minimal iCalendar file. Times are local with a zone, exactly as ticketed. */
 export function tripIcs(trip: Trip, segs: Segment[], view: View): string {
   const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const fmt = (v: string | null) => (v ? v.replace(/[-:]/g, '').slice(0, 15) : '');
+  // Calendars want YYYYMMDDTHHMMSS. Our times carry no seconds, so pad them.
+  const fmt = (v: string | null) => {
+    if (!v) return '';
+    const t = v.replace(/[-:]/g, '').slice(0, 15);
+    return t.length === 13 ? `${t}00` : t;
+  };
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//fly//EN', 'CALSCALE:GREGORIAN'];
 
   segs.forEach((s, i) => {
     if (!s.departLocal) return;
     const description = view === 'private'
       ? [s.bookingRef && `Ref ${s.bookingRef}`, s.seat && `Seat ${s.seat}`].filter(Boolean).join(', ')
-      : [s.seat && `Seat ${s.seat}`].filter(Boolean).join(', ');
+      : '';
     lines.push(
       'BEGIN:VEVENT',
       `UID:${trip.slug}-${i}@fly.diz.lt`,
@@ -98,7 +103,7 @@ export function tripIcs(trip: Trip, segs: Segment[], view: View): string {
       `DTSTART:${fmt(s.departLocal)}`,
       s.arriveLocal ? `DTEND:${fmt(s.arriveLocal)}` : `DURATION:PT2H`,
       `SUMMARY:${[s.carrier, s.number].filter(Boolean).join(' ')} ${s.fromCode ?? ''} to ${s.toCode ?? ''}`,
-      `DESCRIPTION:${description}`,
+      ...(description ? [`DESCRIPTION:${description}`] : []),
       'END:VEVENT',
     );
   });
