@@ -14,6 +14,44 @@ export function esc(v: unknown): string {
  * places lead, labels and durations support. Measured on the card background,
  * light theme: body 5.9:1, labels 4.5:1, accent 6.6:1.
  */
+const COPY_SVG = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 3.5v-1h-8v8h1"/></svg>`;
+const DONE_SVG = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5"/></svg>`;
+
+/**
+ * A code you might have to type into an airline site: a flight number, a
+ * booking reference. Rendered as a button so one tap copies it.
+ */
+export function copyable(value: string, extraClass = ''): string {
+  const safe = esc(value);
+  return `<button type="button" class="cp ${extraClass}" data-copy="${safe}" aria-label="Copy ${safe}"><span>${safe}</span><span class="cp-icon">${COPY_SVG}</span><span class="cp-done">${DONE_SVG}</span></button>`;
+}
+
+/** One listener for every copy button on the page. */
+export const COPY_JS = `<script>
+document.addEventListener('click', async (e) => {
+  const button = e.target.closest('[data-copy]');
+  if (!button) return;
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(button.dataset.copy);
+    ok = true;
+  } catch {
+    const field = document.createElement('textarea');
+    field.value = button.dataset.copy;
+    field.setAttribute('readonly', '');
+    field.style.position = 'fixed';
+    field.style.opacity = '0';
+    document.body.appendChild(field);
+    field.select();
+    ok = document.execCommand('copy');
+    field.remove();
+  }
+  if (!ok) return;
+  button.classList.add('copied');
+  setTimeout(() => button.classList.remove('copied'), 1800);
+});
+</script>`;
+
 export const CSS = `
 :root {
   color-scheme: light dark;
@@ -68,7 +106,7 @@ export const CSS = `
   --shadow: 0 1px 2px rgba(0,0,0,.5), 0 12px 32px -24px rgba(0,0,0,1);
 }
 
-* { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 body {
   margin: 0; background: var(--ground); color: var(--ink);
   font-family: var(--sans); font-size: 16.5px; line-height: 1.55;
@@ -114,7 +152,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .stop:last-child::after {
   content: ""; position: absolute;
   left: calc(var(--rail-x) - var(--gutter));
-  top: calc(var(--mark-top) + var(--dot) / 2); bottom: -1rem; width: 2px; background: var(--paper);
+  top: calc(var(--mark-top) + var(--dot)); bottom: -1rem; width: 2px; background: var(--paper);
 }
 .when { font-size: var(--when-size); line-height: var(--when-line); font-weight: 700; letter-spacing: -.015em; }
 .where { font-size: .95rem; color: var(--muted); margin-top: .05rem; }
@@ -200,6 +238,21 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 }
 .share-note { margin: .7rem 0 0; font-size: .82rem; color: var(--faint); }
 
+/* ---- copyable codes ---- */
+.cp {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0;
+  cursor: pointer; display: inline; white-space: nowrap; border-radius: 3px;
+}
+.cp:hover { color: var(--accent); }
+.cp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cp svg { width: .78em; height: .78em; margin-left: .28em; vertical-align: -.04em; }
+.cp-icon { opacity: .45; }
+.cp:hover .cp-icon { opacity: .9; }
+.cp-done { display: none; color: var(--accent); }
+.cp.copied .cp-icon { display: none; }
+.cp.copied .cp-done { display: inline; }
+.cp.copied { color: var(--accent); }
+
 /* ---- landing ---- */
 .wrap { max-width: 34rem; }
 .card + .card { margin-top: 1.25rem; }
@@ -210,16 +263,11 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 }
 /* Inline, not a chip: it sits in the sentence and only the colour marks it. */
 .addr {
-  font: inherit; font-family: var(--mono); font-size: .92em; font-weight: 500;
-  color: var(--accent); background: none; border: 0; padding: 0; margin: 0;
-  cursor: pointer; display: inline; white-space: nowrap;
-  border-bottom: 1px dashed var(--accent-line);
+  font-family: var(--mono); font-size: .92em; font-weight: 500; color: var(--accent);
+  border-bottom: 1px dashed var(--accent-line); border-radius: 0;
 }
-.addr:hover { border-bottom-style: solid; }
-.addr:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
-.copy-icon, .done-icon { width: .78em; height: .78em; opacity: .75; margin-left: .3em; vertical-align: -.03em; }
-.done-icon, .addr.copied .copy-icon { display: none; }
-.addr.copied .copy-icon + .done-icon, .addr.copied .done-icon { display: inline; opacity: 1; }
+.addr:hover { border-bottom-style: solid; color: var(--accent); }
+.addr .cp-icon { opacity: .7; }
 
 /* ---- sample ---- */
 .sample-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; }
@@ -237,6 +285,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .sample[data-view="public"] .private-only { display: none; }
 .sample .split .main, .sample .split .more { cursor: default; }
 .sample-note { margin: 1rem 0 0; font-size: .82rem; color: var(--faint); }
+.actions-end { justify-content: flex-end; }
 
 /* ---- admin tables ---- */
 table { border-collapse: collapse; width: 100%; font-size: .88rem; }
@@ -255,5 +304,5 @@ export function page(title: string, body: string): string {
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <title>${esc(title)}</title><style>${CSS}</style></head>
-<body><div class="wrap">${body}</div></body></html>`;
+<body><div class="wrap">${body}</div>${COPY_JS}</body></html>`;
 }

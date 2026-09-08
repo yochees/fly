@@ -1,4 +1,4 @@
-import { esc, page } from './html.ts';
+import { esc, page, copyable } from './html.ts';
 import { config } from '../config.ts';
 
 type Segment = {
@@ -95,7 +95,7 @@ function spanHtml(s: Segment, view: View): string {
     : s.departLocal ? `${dayLabel(s.departLocal)} ${time(s.departLocal)}` : '';
   const rest = [
     s.address ? esc(s.address) : '',
-    s.bookingRef ? `ref ${esc(s.bookingRef)}` : '',
+    s.bookingRef ? `ref ${copyable(s.bookingRef)}` : '',
   ].filter(Boolean).join(' &middot; ');
 
   return `<div class="span">
@@ -143,7 +143,7 @@ function legHtml(s: Segment, view: View, isFirstOfDay: boolean): string {
 
   const departExtra = [
     show('seat') && s.seat ? `seat ${esc(s.seat)}` : '',
-    show('bookingRef') && s.bookingRef ? `ref ${esc(s.bookingRef)}` : '',
+    show('bookingRef') && s.bookingRef ? `ref ${copyable(s.bookingRef)}` : '',
     show('passengers') && pax.length ? esc(pax.join(', ')) : '',
   ].filter(Boolean).join(' &middot; ');
 
@@ -155,7 +155,7 @@ function legHtml(s: Segment, view: View, isFirstOfDay: boolean): string {
 
   return [
     stopHtml('', departWhen, `${esc(s.fromCity ?? '')} <b>${esc(s.fromCode ?? '')}</b>${departExtra ? ` &middot; ${departExtra}` : ''}`),
-    `<div class="hop">${duration ? `<b>${duration}</b> &middot; ` : ''}${esc(flight)}${s.carrierName ? ` &middot; ${esc(s.carrierName)}` : ''}</div>`,
+    `<div class="hop">${duration ? `<b>${duration}</b> &middot; ` : ''}${flight ? copyable(flight) : ''}${s.carrierName ? ` &middot; ${esc(s.carrierName)}` : ''}</div>`,
     stopHtml('arrive', arriveSameDay ? time(s.arriveLocal) : `${dayLabel(s.arriveLocal)} &middot; ${time(s.arriveLocal)}`,
       `${esc(s.toCity ?? '')} <b>${esc(s.toCode ?? '')}</b>`),
   ].join('\n');
