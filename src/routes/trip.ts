@@ -3,42 +3,71 @@ import { eq, asc } from 'drizzle-orm';
 import { db } from '../db/index.ts';
 import { trips, segments, tripSlugs } from '../db/schema.ts';
 import { normaliseSlug, isValidSlug } from '../lib/slug.ts';
-import { tripPage, tripIcs } from '../views/trip.ts';
+import { tripPage, tripIcs, type View } from '../views/trip.ts';
 
 export const tripRoutes = new Hono();
 
-async function load(slugRaw: string) {
+async function withSegments(trip: typeof trips.$inferSelect) {
+  const segs = await db.select().from(segments).where(eq(segments.tripId, trip.id)).orderBy(asc(segments.departLocal));
+  return { trip, segs };
+}
+
+/** Public page. The slug is short, so it holds nothing that names a person. */
+async function loadPublic(slugRaw: string) {
   const slug = normaliseSlug(slugRaw);
   if (!isValidSlug(slug)) return null;
 
-  let [trip] = await db.select().from(trips).where(eq(trips.slug, slug));
-  if (!trip) {
-    // An old slug after a rename still resolves, so shared links keep working.
-    const [old] = await db.select().from(tripSlugs).where(eq(tripSlugs.slug, slug));
-    if (!old) return null;
-    [trip] = await db.select().from(trips).where(eq(trips.id, old.tripId));
-    if (!trip) return null;
-    return { trip, segs: [], redirectTo: trip.slug };
-  }
+  const [trip] = await db.select().from(trips).where(eq(trips.slug, slug));
+  if (trip) return { ...(await withSegments(trip)), redirectTo: null as string | null };
 
-  const segs = await db.select().from(segments).where(eq(segments.tripId, trip.id)).orderBy(asc(segments.departLocal));
-  return { trip, segs, redirectTo: null as string | null };
+  // An old slug after a rename still resolves, so shared links keep working.
+  const [old] = await db.select().from(tripSlugs).where(eq(tripSlugs.slug, slug));
+  if (!old) return null;
+  const [target] = await db.select().from(trips).where(eq(trips.id, old.tripId));
+  return target ? { trip: target, segs: [], redirectTo: target.slug } : null;
 }
 
+/**
+ * Owner page. The key is long enough not to be guessed. When Google and Apple
+ * sign-in arrive, this route keeps its shape and the check becomes a session.
+ */
+async function loadPrivate(key: string) {
+  if (!/^[A-Z0-9]{12,32}$/.test(key.toUpperCase())) return null;
+  const [trip] = await db.select().from(trips).where(eq(trips.privateKey, key.toUpperCase()));
+  return trip ? await withSegments(trip) : null;
+}
+
+tripRoutes.get('/t/:key', async (c) => {
+  const found = await loadPrivate(c.req.param('key'));
+  if (!found) return c.text('Not found', 404);
+  c.header('X-Robots-Tag', 'noindex');
+  return c.html(tripPage(found.trip, found.segs, 'private'));
+});
+
+tripRoutes.get('/t/:key{[A-Za-z0-9]+}.ics', async (c) => {
+  const found = await loadPrivate(c.req.param('key'));
+  if (!found) return c.text('Not found', 404);
+  return ics(found.trip, found.segs, 'private');
+});
+
 tripRoutes.get('/:slug{[A-Za-z0-9]{4,16}}', async (c) => {
-  const found = await load(c.req.param('slug'));
+  const found = await loadPublic(c.req.param('slug'));
   if (!found) return c.text('Not found', 404);
   if (found.redirectTo) return c.redirect(`/${found.redirectTo}`, 301);
-  return c.html(tripPage(found.trip, found.segs));
+  return c.html(tripPage(found.trip, found.segs, 'public'));
 });
 
 tripRoutes.get('/:slug{[A-Za-z0-9]{4,16}}.ics', async (c) => {
-  const found = await load(c.req.param('slug'));
+  const found = await loadPublic(c.req.param('slug'));
   if (!found || found.redirectTo) return c.text('Not found', 404);
-  return new Response(tripIcs(found.trip, found.segs), {
+  return ics(found.trip, found.segs, 'public');
+});
+
+function ics(trip: typeof trips.$inferSelect, segs: (typeof segments.$inferSelect)[], view: View) {
+  return new Response(tripIcs(trip, segs, view), {
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
-      'Content-Disposition': `attachment; filename="${found.trip.slug}.ics"`,
+      'Content-Disposition': `attachment; filename="${trip.slug}.ics"`,
     },
   });
-});
+}

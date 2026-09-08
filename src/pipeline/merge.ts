@@ -78,6 +78,15 @@ export async function pickTarget(
   return { tripId: null, reason: 'no match, new trip' };
 }
 
+async function uniquePrivateKey(): Promise<string> {
+  for (let i = 0; i < 10; i++) {
+    const key = newSlug(16);
+    const [taken] = await db.select({ id: trips.id }).from(trips).where(eq(trips.privateKey, key));
+    if (!taken) return key;
+  }
+  return newSlug(20);
+}
+
 async function uniqueSlug(): Promise<string> {
   for (let i = 0; i < 10; i++) {
     const slug = newSlug();
@@ -93,23 +102,27 @@ export async function applyResult(opts: {
   threadId: string | null;
   result: Extracted;
   targetTripId: string | null;
-}): Promise<{ tripId: string; slug: string; created: boolean; addedSegments: number }> {
+}): Promise<{ tripId: string; slug: string; privateKey: string; created: boolean; addedSegments: number }> {
   const { userId, emailId, threadId, result } = opts;
   let tripId = opts.targetTripId;
   let created = false;
   let slug: string;
+  let privateKey: string;
 
   if (tripId) {
     const [t] = await db.select().from(trips).where(eq(trips.id, tripId));
     slug = t.slug;
+    privateKey = t.privateKey;
   } else {
     tripId = newId('trip');
     slug = await uniqueSlug();
+    privateKey = await uniquePrivateKey();
     created = true;
     await db.insert(trips).values({
       id: tripId,
       userId,
       slug,
+      privateKey,
       title: result.trip_title,
       bookingRefs: json([]),
       threadIds: json([]),
@@ -178,5 +191,5 @@ export async function applyResult(opts: {
     updatedAt: new Date().toISOString(),
   }).where(eq(trips.id, tripId));
 
-  return { tripId, slug, created, addedSegments: added };
+  return { tripId, slug, privateKey, created, addedSegments: added };
 }

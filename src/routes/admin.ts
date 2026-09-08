@@ -47,7 +47,7 @@ admin.get('/admin/emails/:id', async (c) => {
   const body = `<h1>${esc(email.subject ?? '(no subject)')}</h1>
 <p class="sub">${esc(email.fromAddr)} &middot; ${esc(t(email.createdAt))} &middot; ${esc(email.status)}</p>
 
-${trip ? `<p>Trip: <a href="/${esc(trip.slug)}">${esc(trip.slug)}</a> &middot; ${esc(trip.title ?? '')}</p>` : '<p>No trip made from this email.</p>'}
+${trip ? `<p>Trip: <a href="/t/${esc(trip.privateKey)}">${esc(trip.title ?? trip.slug)}</a> &middot; public link <a href="/${esc(trip.slug)}">${esc(trip.slug)}</a></p>` : '<p>No trip made from this email.</p>'}
 ${email.error ? `<div class="flag">${esc(email.error)}</div>` : ''}
 
 <p>
@@ -89,8 +89,9 @@ admin.get('/admin/emails/:id/reparse', async (c) => {
 
 admin.get('/admin/trips', async (c) => {
   const rows = await db.select().from(trips).orderBy(desc(trips.updatedAt)).limit(100);
-  const body = `<h1>Trips</h1><table><tr><th>Slug</th><th>Title</th><th>Dates</th><th>Review</th></tr>
-${rows.map((t2) => `<tr><td><a href="/${esc(t2.slug)}">${esc(t2.slug)}</a></td><td>${esc(t2.title ?? '')}</td>
+  const body = `<h1>Trips</h1><table><tr><th>Public</th><th>Private</th><th>Title</th><th>Dates</th><th>Review</th></tr>
+${rows.map((t2) => `<tr><td><a href="/${esc(t2.slug)}">${esc(t2.slug)}</a></td>
+<td><a href="/t/${esc(t2.privateKey)}">owner view</a></td><td>${esc(t2.title ?? '')}</td>
 <td>${esc(t2.startDate ?? '')} ${esc(t2.endDate ?? '')}</td><td>${t2.needsReview ? 'yes' : ''}</td></tr>`).join('')}</table>`;
   return c.html(page('trips', body));
 });

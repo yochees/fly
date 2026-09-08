@@ -97,12 +97,13 @@ export async function processEmail(emailId: string): Promise<void> {
 
   await db.update(emails).set({ status: 'parsed', error: null }).where(eq(emails.id, emailId));
 
-  const url = `${config.publicBaseUrl}/${applied.slug}`;
+  // The owner gets the private link. The public one is on that page to share.
+  const url = `${config.publicBaseUrl}/t/${applied.privateKey}`;
   console.log(`[fly] ${email.fromAddr} -> ${url} (${applied.created ? 'new' : 'updated'}, ${target.reason})`);
 
   if (config.sendConfirmation) {
     const body = applied.created
-      ? `Your trip is ready:\n\n${url}\n\nForward the return ticket to this address and it joins the same page.`
+      ? `Your trip is ready:\n\n${url}\n\nThat link is yours alone. To share the trip, use the share link on the page: it hides passenger names and the booking reference.\n\nForward the return ticket to this address and it joins the same page.`
       : `Trip updated:\n\n${url}`;
     try {
       await reply(email.fromAddr, email.threadId, body, `Your trip: ${applied.slug}`);

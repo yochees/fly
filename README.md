@@ -18,7 +18,12 @@ forwarded mail -> OpenMail -> POST /hooks/openmail -> emails table + job
 
 - **One process.** Hono web server and the job worker run together, which is why
   SQLite is enough. No Redis, no Postgres, no queue service.
-- **Identity is the sender address.** No sign-up.
+- **Identity is the sender address.** No sign-up yet. Google and Apple sign-in
+  will replace the private key without changing the route.
+- **Two views of one trip.**
+  `/t/<privateKey>` is the owner page with everything on it.
+  `/<slug>` is the page you share: passenger names and the booking reference are
+  removed. The list of hidden fields is `HIDDEN_IN_PUBLIC` in `src/views/trip.ts`.
 - **Merging.** A thread id or a booking reference is proof and decides on its own.
   The model only chooses when neither matches.
 - **Every segment has a dedupe key** (carrier, number, date, origin), so the same
@@ -58,6 +63,7 @@ OpenMail webhook for the `fly` inbox points at `https://fly.diz.lt/hooks/openmai
 
 ## TODO
 
+- [ ] Google and Apple sign-in for the private view.
 - [ ] Let a user rename the slug. `trip_slugs` already keeps old links alive.
 - [ ] Litestream backup in the deploy.
 - [ ] Rate limit per sender address.

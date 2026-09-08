@@ -50,6 +50,19 @@ pre { background: var(--card); border: 1px solid var(--line); border-radius: 10p
 export function page(title: string, body: string): string {
   return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title><style>${CSS}</style></head>
+<title>${esc(title)}</title><style>${CSS}${SHARE_CSS}</style></head>
 <body><div class="wrap">${body}</div></body></html>`;
 }
+
+export const SHARE_CSS = `
+.share { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 1rem 1.25rem; margin-top: 1.8rem; }
+.share-label { margin: 0 0 .6rem; font-size: .82rem; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--muted); }
+.share-row { display: flex; gap: .5rem; }
+.share-url { flex: 1; min-width: 0; font: inherit; font-size: .92rem; padding: .5rem .7rem;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--ink); }
+.btn { font: inherit; font-size: .92rem; padding: .5rem .9rem; border: 1px solid var(--line);
+  border-radius: 9px; background: var(--accent); color: #fff; cursor: pointer; }
+.share-note { margin: .7rem 0 0; font-size: .82rem; color: var(--muted); }
+`;

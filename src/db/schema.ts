@@ -53,7 +53,8 @@ export const attachments = sqliteTable('attachments', {
 export const trips = sqliteTable('trips', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().references(() => users.id),
-  slug: text('slug').notNull().unique(),
+  slug: text('slug').notNull().unique(),          // public, shareable
+  privateKey: text('private_key').notNull().unique(), // owner link, full detail
   title: text('title'),
   startDate: text('start_date'),                    // YYYY-MM-DD, earliest segment
   endDate: text('end_date'),

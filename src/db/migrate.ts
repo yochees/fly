@@ -56,6 +56,7 @@ const statements = [
      id TEXT PRIMARY KEY,
      user_id TEXT NOT NULL REFERENCES users(id),
      slug TEXT NOT NULL UNIQUE,
+     private_key TEXT,
      title TEXT,
      start_date TEXT,
      end_date TEXT,
@@ -133,8 +134,24 @@ const statements = [
   `CREATE INDEX IF NOT EXISTS jobs_run_at_idx ON jobs(run_at)`,
 ];
 
+/** SQLite has no ADD COLUMN IF NOT EXISTS, so ask the table first. */
+async function addColumn(table: string, column: string, type: string) {
+  const info = await client.execute(`PRAGMA table_info(${table})`);
+  if (info.rows.some((r: any) => r.name === column)) return;
+  await client.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+}
+
 export async function migrate() {
   for (const sql of statements) await client.execute(sql);
+  await addColumn('trips', 'private_key', 'TEXT');
+  await client.execute(`CREATE UNIQUE INDEX IF NOT EXISTS trips_private_key_idx ON trips(private_key)`);
+
+  // Trips made before the split get a key now, so their owner link works.
+  const missing = await client.execute(`SELECT id FROM trips WHERE private_key IS NULL`);
+  for (const row of missing.rows as any[]) {
+    const { newSlug } = await import('../lib/slug.ts');
+    await client.execute({ sql: `UPDATE trips SET private_key = ? WHERE id = ?`, args: [newSlug(16), row.id] });
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
