@@ -140,18 +140,22 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 }
 .id { font-family: var(--mono); font-size: .78rem; color: var(--faint); letter-spacing: .04em; }
 
-.split { position: relative; display: inline-flex; align-items: stretch; }
+.split { position: relative; display: inline-flex; align-items: stretch;
+  border: 1.5px solid var(--accent-line); border-radius: 999px; background: transparent; }
 .split .main, .split .more {
   font: inherit; font-size: .88rem; font-weight: 500; color: var(--accent);
-  background: transparent; border: 1.5px solid var(--accent-line); cursor: pointer;
-  text-decoration: none; display: inline-flex; align-items: center; gap: .45rem;
+  background: transparent; border: 0; cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; gap: .45rem;
 }
-.split .main { border-radius: 999px 0 0 999px; padding: .42rem .55rem .42rem 1rem; }
-.split .more { list-style: none; border-radius: 0 999px 999px 0; border-left-width: 0; padding: .42rem .75rem; }
+.split .main { border-radius: 999px 0 0 999px; padding: .42rem .9rem .42rem 1.05rem; }
+.split .more {
+  list-style: none; border-radius: 0 999px 999px 0; padding: .42rem .7rem;
+  border-left: 1px solid var(--accent-line);
+}
 .split .main:hover, .split .more:hover { background: var(--accent-soft); }
-.split .main:focus-visible, .split .more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.split .sep { width: 1px; background: var(--accent-line); margin: .35rem 0; }
+.split .main:focus-visible, .split .more:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .split .more::-webkit-details-marker { display: none; }
+.split details { display: flex; }
 .split details[open] .more { background: var(--accent-soft); }
 .split svg { width: 14px; height: 14px; }
 

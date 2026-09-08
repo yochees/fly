@@ -20,6 +20,7 @@ type Trip = {
  */
 export type View = 'private' | 'public';
 export type IcsMode = 'trip' | 'flights';
+export type IcsFile = { name: string; data: string };
 
 /** One list, so hiding one more field later is a one line change. */
 const HIDDEN_IN_PUBLIC = ['passengers', 'bookingRef', 'seat'] as const;
@@ -124,14 +125,13 @@ function calendarHtml(base: string): string {
   const cal = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/></svg>`;
   return `<div class="split">
   <a class="main" href="${base}">${cal}Add to calendar</a>
-  <span class="sep"></span>
   <details>
     <summary class="more" aria-label="Other calendar options" role="button">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6.5 8 10.5 12 6.5"/></svg>
     </summary>
     <div class="menu" role="menu">
       <a role="menuitem" href="${base}">One event for the whole trip<span class="note">Departure to final arrival</span></a>
-      <a role="menuitem" href="${base}?mode=flights">An event for each flight<span class="note">One entry per leg</span></a>
+      <a role="menuitem" href="${base}?mode=flights">One event per flight<span class="note">A zip with one file per flight</span></a>
     </div>
   </details>
 </div>`;
@@ -195,11 +195,28 @@ ${MENU_JS}`;
   return page(trip.title ?? `Trip ${trip.slug}`, body);
 }
 
+const slugify = (v: string) => v.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+/**
+ * One calendar file per flight, for the zip. Separate files let a person add
+ * the outbound to one calendar and the return to another, or drop one leg.
+ */
+export function flightIcsFiles(trip: Trip, segs: Segment[], view: View): IcsFile[] {
+  const dated = segs.filter((s) => s.departLocal);
+  return dated.map((s, i) => {
+    const flight = [s.carrier, s.number].filter(Boolean).join(' ') || `leg-${i + 1}`;
+    const name = `${String(i + 1).padStart(2, '0')}-${slugify(flight)}-${s.fromCode ?? ''}-${s.toCode ?? ''}.ics`;
+    // The index keeps every UID distinct, so a calendar treats the files
+    // as four separate events rather than four copies of one.
+    return { name, data: tripIcs(trip, [s], view, 'flights', i) };
+  });
+}
+
 /**
  * Times stay floating: they are local to each airport, which is how a ticket
  * reads and how every calendar shows a flight you typed in by hand.
  */
-export function tripIcs(trip: Trip, segs: Segment[], view: View, mode: IcsMode = 'trip'): string {
+export function tripIcs(trip: Trip, segs: Segment[], view: View, mode: IcsMode = 'trip', uidFrom = 0): string {
   const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const fmt = (v: string | null) => {
     if (!v) return '';
@@ -238,7 +255,7 @@ export function tripIcs(trip: Trip, segs: Segment[], view: View, mode: IcsMode =
         : '';
       lines.push(
         'BEGIN:VEVENT',
-        `UID:${trip.slug}-${i}@fly.diz.lt`,
+        `UID:${trip.slug}-${uidFrom + i}@fly.diz.lt`,
         `DTSTAMP:${stamp}`,
         `DTSTART:${fmt(s.departLocal)}`,
         s.arriveLocal ? `DTEND:${fmt(s.arriveLocal)}` : 'DURATION:PT2H',

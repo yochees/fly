@@ -3,7 +3,8 @@ import { eq, asc } from 'drizzle-orm';
 import { db } from '../db/index.ts';
 import { trips, segments, tripSlugs } from '../db/schema.ts';
 import { normaliseSlug, isValidSlug } from '../lib/slug.ts';
-import { tripPage, tripIcs, type View, type IcsMode } from '../views/trip.ts';
+import { tripPage, tripIcs, flightIcsFiles, type View } from '../views/trip.ts';
+import { zip } from '../lib/zip.ts';
 
 export const tripRoutes = new Hono();
 
@@ -66,9 +67,19 @@ tripRoutes.get('/:file{[A-Za-z0-9]{4,16}\\.ics}', async (c) => {
 });
 
 function ics(c: { req: { query: (k: string) => string | undefined } }, trip: typeof trips.$inferSelect, segs: (typeof segments.$inferSelect)[], view: View) {
-  // One long event is the default; ?mode=flights gives one event per leg.
-  const mode: IcsMode = c.req.query('mode') === 'flights' ? 'flights' : 'trip';
-  return new Response(tripIcs(trip, segs, view, mode), {
+  // Default: one long event. ?mode=flights: a zip holding one file per flight.
+  if (c.req.query('mode') === 'flights') {
+    const files = flightIcsFiles(trip, segs, view);
+    const body = zip(files.map((f) => ({ name: f.name, data: f.data })));
+    return new Response(new Uint8Array(body), {
+      headers: {
+        'Content-Type': 'application/zip',
+        'Content-Length': String(body.length),
+        'Content-Disposition': `attachment; filename="${trip.slug}-flights.zip"`,
+      },
+    });
+  }
+  return new Response(tripIcs(trip, segs, view, 'trip'), {
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
       'Content-Disposition': `attachment; filename="${trip.slug}.ics"`,
