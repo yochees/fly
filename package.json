@@ -1,0 +1,28 @@
+{
+  "name": "venga",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node --env-file=.env --watch src/main.ts",
+    "start": "node --env-file=.env src/main.ts",
+    "migrate": "node --env-file=.env src/db/migrate.ts",
+    "replay": "node --env-file=.env scripts/replay.ts",
+    "typecheck": "tsc --noEmit",
+    "ingest": "node --env-file=.env scripts/ingest.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@libsql/client": "^0.14.0",
+    "drizzle-orm": "^0.38.2",
+    "hono": "^4.6.14",
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
