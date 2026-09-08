@@ -201,21 +201,42 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .share-note { margin: .7rem 0 0; font-size: .82rem; color: var(--faint); }
 
 /* ---- landing ---- */
+.wrap { max-width: 34rem; }
+.card + .card { margin-top: 1.25rem; }
+
 .home h1 {
-  font-size: 1.6rem; line-height: 1.4; font-weight: 500; letter-spacing: -.015em;
+  font-size: 1.6rem; line-height: 1.45; font-weight: 500; letter-spacing: -.015em;
   margin: 0; text-wrap: pretty;
 }
+/* Inline, not a chip: it sits in the sentence and only the colour marks it. */
 .addr {
-  font: inherit; font-family: var(--mono); font-size: .93em; font-weight: 500;
-  color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-line);
-  border-radius: 8px; padding: .05em .45em; cursor: pointer;
-  display: inline-flex; align-items: center; gap: .35em; white-space: nowrap;
+  font: inherit; font-family: var(--mono); font-size: .92em; font-weight: 500;
+  color: var(--accent); background: none; border: 0; padding: 0; margin: 0;
+  cursor: pointer; display: inline; white-space: nowrap;
+  border-bottom: 1px dashed var(--accent-line);
 }
-.addr:hover { background: var(--paper); }
-.addr:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.copy-icon, .done-icon { width: .82em; height: .82em; opacity: .7; }
+.addr:hover { border-bottom-style: solid; }
+.addr:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+.copy-icon, .done-icon { width: .78em; height: .78em; opacity: .75; margin-left: .3em; vertical-align: -.03em; }
 .done-icon, .addr.copied .copy-icon { display: none; }
-.addr.copied .done-icon { display: block; opacity: 1; }
+.addr.copied .copy-icon + .done-icon, .addr.copied .done-icon { display: inline; opacity: 1; }
+
+/* ---- sample ---- */
+.sample-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; }
+.sample-label { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+.toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+.toggle button {
+  font: inherit; font-size: .8rem; font-weight: 500; color: var(--muted);
+  background: none; border: 0; border-radius: 999px; padding: .25rem .8rem; cursor: pointer;
+}
+.toggle button.on { background: var(--accent); color: var(--paper); }
+.toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.sample-title { font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; margin: 0 0 .2rem; }
+.sample[data-view="private"] .public-only { display: none; }
+.sample[data-view="public"] .private-only { display: none; }
+.sample .split .main, .sample .split .more { cursor: default; }
+.sample-note { margin: 1rem 0 0; font-size: .82rem; color: var(--faint); }
 
 /* ---- admin tables ---- */
 table { border-collapse: collapse; width: 100%; font-size: .88rem; }
