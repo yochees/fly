@@ -20,10 +20,14 @@ forwarded mail -> OpenMail -> POST /hooks/openmail -> emails table + job
   SQLite is enough. No Redis, no Postgres, no queue service.
 - **Identity is the sender address.** No sign-up yet. Google and Apple sign-in
   will replace the private key without changing the route.
+- **Flights, trains, ferries, hotels and car hire.** Things that move you become
+  stops on the rail. Hotels and cars fill the gap between them.
 - **Two views of one trip.**
-  `/t/<privateKey>` is the owner page with everything on it.
-  `/<slug>` is the page you share: passenger names, the booking reference and seat
-  numbers are removed. The list of hidden fields is `HIDDEN_IN_PUBLIC` in `src/views/trip.ts`.
+  `/t/<privateKey>` is the owner page with everything on it: seats, references,
+  hotel name, address, confirmation numbers, which is what you need at a desk.
+  `/<slug>` is the page you share. Private fields are dropped **server side**, so
+  they are absent from the HTML, from the .ics file and from the names of the
+  files inside the zip. Reading the page source shows nothing extra.
 - **Merging.** A thread id or a booking reference is proof and decides on its own.
   The model only chooses when neither matches.
 - **Every segment has a dedupe key** (carrier, number, date, origin), so the same

@@ -145,6 +145,7 @@ export async function applyResult(opts: {
       carrierName: s.carrier_name,
       number: s.number,
       bookingRef: s.booking_ref,
+      address: s.address,
       fromCode: s.from_code,
       fromCity: s.from_city,
       toCode: s.to_code,

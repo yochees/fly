@@ -136,6 +136,18 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .stay .k { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
 .stay .v { font-size: .95rem; font-weight: 500; margin-top: .1rem; }
 
+/* A hotel or a car booked inside the gap. */
+.span { margin-top: .6rem; font-size: .9rem; }
+.span + .span { margin-top: .5rem; }
+.span .tag {
+  display: inline-block; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent); background: var(--accent-soft); border-radius: 999px;
+  padding: .1rem .5rem; vertical-align: .06em; margin-right: .35rem;
+}
+.span-top b { font-weight: 500; }
+.span-when { color: var(--muted); font-size: .85rem; margin-top: .1rem; }
+.span-rest { color: var(--faint); font-size: .82rem; margin-top: .05rem; }
+
 /* ---- actions ---- */
 .actions {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;

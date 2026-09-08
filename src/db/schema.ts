@@ -83,6 +83,7 @@ export const segments = sqliteTable('segments', {
   carrierName: text('carrier_name'),
   number: text('number'),
   bookingRef: text('booking_ref'),
+  address: text('address'),                         // hotels, rental desks
   fromCode: text('from_code'),
   fromCity: text('from_city'),
   toCode: text('to_code'),

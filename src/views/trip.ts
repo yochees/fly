@@ -3,7 +3,7 @@ import { config } from '../config.ts';
 
 type Segment = {
   kind: string; carrier: string | null; carrierName: string | null; number: string | null;
-  bookingRef: string | null; fromCode: string | null; fromCity: string | null;
+  bookingRef: string | null; address: string | null; fromCode: string | null; fromCity: string | null;
   toCode: string | null; toCity: string | null; departLocal: string | null; departTz: string | null;
   arriveLocal: string | null; arriveTz: string | null;
   cabin: string | null; seat: string | null; passengers: string | null;
@@ -22,8 +22,19 @@ export type View = 'private' | 'public';
 export type IcsMode = 'trip' | 'flights';
 export type IcsFile = { name: string; data: string };
 
-/** One list, so hiding one more field later is a one line change. */
-const HIDDEN_IN_PUBLIC = ['passengers', 'bookingRef', 'seat'] as const;
+/**
+ * One list, so hiding one more field later is a one line change. The public
+ * page never renders these: they are dropped server side, so they are not in
+ * the HTML either, not merely hidden with CSS.
+ */
+const HIDDEN_IN_PUBLIC = ['passengers', 'bookingRef', 'seat', 'address', 'placeName'] as const;
+
+/** Things that carry you somewhere. They become stops on the rail. */
+const MOVE_KINDS = new Set(['flight', 'train', 'bus', 'ferry']);
+/** Things that fill the time between. They sit in the gap. */
+const SPAN_KINDS = new Set(['hotel', 'car']);
+const isMove = (s: Segment) => MOVE_KINDS.has(s.kind);
+const isSpan = (s: Segment) => SPAN_KINDS.has(s.kind);
 
 const time = (v: string | null) => (v ? v.slice(11, 16) : '--:--');
 const dayLabel = (v: string | null) =>
@@ -67,28 +78,57 @@ function stopHtml(cls: string, when: string, where: string): string {
   return `<div class="stop ${cls}"><div class="when nums">${when}</div><div class="where">${where}</div></div>`;
 }
 
+const KIND_LABEL: Record<string, string> = { hotel: 'Hotel', car: 'Car hire' };
+
+/**
+ * A hotel or a car inside a gap. The public page gets the fact that something
+ * is booked; the name, the address and the confirmation stay on the owner page,
+ * where they are what you actually need at the desk.
+ */
+function spanHtml(s: Segment, view: View): string {
+  const kind = KIND_LABEL[s.kind] ?? 'Booking';
+  if (view === 'public') return `<div class="span"><span class="tag">${esc(kind)} booked</span></div>`;
+
+  const name = s.carrierName ?? s.carrier ?? kind;
+  const when = s.departLocal && s.arriveLocal
+    ? `${dayLabel(s.departLocal)} ${time(s.departLocal)} to ${dayLabel(s.arriveLocal)} ${time(s.arriveLocal)}`
+    : s.departLocal ? `${dayLabel(s.departLocal)} ${time(s.departLocal)}` : '';
+  const rest = [
+    s.address ? esc(s.address) : '',
+    s.bookingRef ? `ref ${esc(s.bookingRef)}` : '',
+  ].filter(Boolean).join(' &middot; ');
+
+  return `<div class="span">
+  <div class="span-top"><span class="tag">${esc(kind)}</span> <b>${esc(name)}</b></div>
+  ${when ? `<div class="span-when nums">${esc(when)}</div>` : ''}
+  ${rest ? `<div class="span-rest">${rest}</div>` : ''}
+</div>`;
+}
+
 /**
  * The gap between two legs. The rail goes dotted through it, because the
  * timeline stops being to scale here: an hour and a week look the same.
+ * It says how long, not where: people move around while they are there.
  */
-function stayHtml(prev: Segment, next: Segment): string {
+function stayHtml(prev: Segment, next: Segment, spans: Segment[], view: View): string {
   if (!prev.arriveLocal || !next.departLocal) return '';
   const from = instant(prev.arriveLocal, prev.arriveTz);
   const to = instant(next.departLocal, next.departTz);
   if (from === null || to === null || to <= from) return '';
   const gap = to - from;
-  if (gap < 45 * 60_000) return '';               // too short to be worth a line
+  if (gap < 45 * 60_000 && !spans.length) return '';   // too short to be worth a line
 
-  const place = prev.toCity ?? prev.toCode ?? '';
   const nights = nightsBetween(prev.arriveLocal, next.departLocal);
   const isStay = nights >= 1;
+  const airport = prev.toCode ?? '';
   const label = isStay
-    ? `${nights} night${nights === 1 ? '' : 's'} in ${place}`
-    : `${humanDuration(gap)} in ${place}`;
+    ? `${nights} night${nights === 1 ? '' : 's'}`
+    : `${humanDuration(gap)}${airport ? ` at ${airport}` : ''}`;
 
   return `<div class="stay">
   <div class="k">${isStay ? 'Stay' : 'Connection'}</div>
   <div class="v">${esc(label)}</div>
+  ${spans.map((s) => spanHtml(s, view)).join('')}
 </div>`;
 }
 
@@ -121,7 +161,7 @@ function legHtml(s: Segment, view: View, isFirstOfDay: boolean): string {
   ].join('\n');
 }
 
-function calendarHtml(base: string): string {
+function calendarHtml(base: string, perItem: string): string {
   const cal = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/></svg>`;
   return `<div class="split">
   <a class="main" href="${base}">${cal}Add to calendar</a>
@@ -131,7 +171,7 @@ function calendarHtml(base: string): string {
     </summary>
     <div class="menu" role="menu">
       <a role="menuitem" href="${base}">One event for the whole trip<span class="note">Departure to final arrival</span></a>
-      <a role="menuitem" href="${base}?mode=flights">One event per flight<span class="note">A zip with one file per flight</span></a>
+      <a role="menuitem" href="${base}?mode=flights">One event per ${perItem}<span class="note">A zip with one file per ${perItem}</span></a>
     </div>
   </details>
 </div>`;
@@ -165,15 +205,47 @@ export function tripPage(trip: Trip, segs: Segment[], view: View): string {
   const range = trip.startDate
     ? `${dayLabel(trip.startDate)}${trip.endDate && trip.endDate !== trip.startDate ? ` &ndash; ${dayLabel(trip.endDate)}` : ''}`
     : '';
-  const flights = segs.map((s) => [s.carrier, s.number].filter(Boolean).join(' ')).filter(Boolean);
+  // Only the things that move: a rental company in this line leaked the
+  // booking to the public page.
+  const flights = segs.filter(isMove).map((s) => [s.carrier, s.number].filter(Boolean).join(' ')).filter(Boolean);
   const icsBase = view === 'private' && trip.privateKey ? `/t/${esc(trip.privateKey)}.ics` : `/${esc(trip.slug)}.ics`;
+  const perItem = segs.every(isMove) && segs.every((s) => s.kind === 'flight') ? 'flight' : 'booking';
+
+  const moves = segs.filter(isMove);
+  const spans = segs.filter(isSpan);
+  const used = new Set<Segment>();
+
+  /** A hotel or car belongs to the gap its start falls inside. */
+  const spansBetween = (prev: Segment, next: Segment) => {
+    const from = instant(prev.arriveLocal, prev.arriveTz);
+    const to = instant(next.departLocal, next.departTz);
+    if (from === null || to === null) return [];
+    return spans.filter((sp) => {
+      if (used.has(sp)) return false;
+      const at = instant(sp.departLocal, sp.departTz);
+      if (at === null) return false;
+      const inside = at >= from - 12 * 3_600_000 && at <= to + 12 * 3_600_000;
+      if (inside) used.add(sp);
+      return inside;
+    });
+  };
 
   const rail: string[] = [];
-  segs.forEach((s, i) => {
-    if (i > 0) rail.push(stayHtml(segs[i - 1], s));
-    const newDay = i === 0 || segs[i - 1].arriveLocal?.slice(0, 10) !== s.departLocal?.slice(0, 10);
+  moves.forEach((s, i) => {
+    if (i > 0) rail.push(stayHtml(moves[i - 1], s, spansBetween(moves[i - 1], s), view));
+    const newDay = i === 0 || moves[i - 1].arriveLocal?.slice(0, 10) !== s.departLocal?.slice(0, 10);
     rail.push(legHtml(s, view, newDay));
   });
+
+  // A hotel with no flight around it, or one booked outside every gap, still
+  // belongs on the page rather than being dropped.
+  const loose = spans.filter((sp) => !used.has(sp));
+  if (loose.length) {
+    rail.push(`<div class="stay">
+  <div class="k">Booked</div>
+  ${loose.map((sp) => spanHtml(sp, view)).join('')}
+</div>`);
+  }
 
   const body = `<div class="card">
 ${view === 'private' && trip.needsReview ? '<div class="flag">Some details were unclear when this was read. Check the times against your ticket.</div>' : ''}
@@ -186,7 +258,7 @@ ${rail.filter(Boolean).join('\n')}
 
 <div class="actions">
   <span class="id">fly &middot; ${esc(trip.slug)}</span>
-  ${calendarHtml(icsBase)}
+  ${calendarHtml(icsBase, perItem)}
 </div>
 ${view === 'private' ? shareHtml(trip) : ''}
 </div>
@@ -204,8 +276,14 @@ const slugify = (v: string) => v.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g
 export function flightIcsFiles(trip: Trip, segs: Segment[], view: View): IcsFile[] {
   const dated = segs.filter((s) => s.departLocal);
   return dated.map((s, i) => {
-    const flight = [s.carrier, s.number].filter(Boolean).join(' ') || `leg-${i + 1}`;
-    const name = `${String(i + 1).padStart(2, '0')}-${slugify(flight)}-${s.fromCode ?? ''}-${s.toCode ?? ''}.ics`;
+    // A rental company also fills the carrier field, so the public file name
+    // has to ignore every name on a booking, not only carrierName.
+    const named = isMove(s) || view === 'private';
+    const flight = named
+      ? [s.carrier, s.number].filter(Boolean).join(' ') || s.carrierName || s.kind
+      : s.kind;
+    const where = isMove(s) ? `-${s.fromCode ?? ''}-${s.toCode ?? ''}` : `-${s.fromCode ?? ''}`;
+    const name = `${String(i + 1).padStart(2, '0')}-${slugify(flight)}${slugify(where) ? `-${slugify(where)}` : ''}.ics`;
     // The index keeps every UID distinct, so a calendar treats the files
     // as four separate events rather than four copies of one.
     return { name, data: tripIcs(trip, [s], view, 'flights', i) };
@@ -230,9 +308,15 @@ export function tripIcs(trip: Trip, segs: Segment[], view: View, mode: IcsMode =
   if (mode === 'trip' && dated.length) {
     const first = dated[0];
     const last = dated[dated.length - 1];
-    const detail = dated.map((s) =>
-      `${[s.carrier, s.number].filter(Boolean).join(' ')} ${s.fromCode ?? ''} ${time(s.departLocal)} to ${s.toCode ?? ''} ${time(s.arriveLocal)}`,
-    );
+    const detail = dated.map((s) => {
+      if (isMove(s)) {
+        return `${[s.carrier, s.number].filter(Boolean).join(' ')} ${s.fromCode ?? ''} ${time(s.departLocal)} to ${s.toCode ?? ''} ${time(s.arriveLocal)}`.trim();
+      }
+      const kind = KIND_LABEL[s.kind] ?? 'Booking';
+      // A hotel or a car names itself only on the owner's file.
+      if (view === 'public') return `${kind} booked`;
+      return `${kind}: ${s.carrierName ?? ''}, ${dayLabel(s.departLocal)} ${time(s.departLocal)} to ${dayLabel(s.arriveLocal)} ${time(s.arriveLocal)}`;
+    });
     if (view === 'private') {
       const refs = [...new Set(dated.map((s) => s.bookingRef).filter(Boolean))];
       if (refs.length) detail.push(`Ref ${refs.join(', ')}`);
@@ -251,7 +335,7 @@ export function tripIcs(trip: Trip, segs: Segment[], view: View, mode: IcsMode =
   } else {
     dated.forEach((s, i) => {
       const description = view === 'private'
-        ? [s.bookingRef && `Ref ${s.bookingRef}`, s.seat && `Seat ${s.seat}`].filter(Boolean).join(', ')
+        ? [s.bookingRef && `Ref ${s.bookingRef}`, s.seat && `Seat ${s.seat}`, s.address].filter(Boolean).join(', ')
         : '';
       lines.push(
         'BEGIN:VEVENT',
@@ -259,7 +343,11 @@ export function tripIcs(trip: Trip, segs: Segment[], view: View, mode: IcsMode =
         `DTSTAMP:${stamp}`,
         `DTSTART:${fmt(s.departLocal)}`,
         s.arriveLocal ? `DTEND:${fmt(s.arriveLocal)}` : 'DURATION:PT2H',
-        `SUMMARY:${[s.carrier, s.number].filter(Boolean).join(' ')} ${s.fromCode ?? ''} to ${s.toCode ?? ''}`,
+        `SUMMARY:${isMove(s)
+          ? `${[s.carrier, s.number].filter(Boolean).join(' ')} ${s.fromCode ?? ''} to ${s.toCode ?? ''}`
+          : view === 'private'
+            ? `${KIND_LABEL[s.kind] ?? 'Booking'}: ${s.carrierName ?? s.fromCity ?? ''}`
+            : `${KIND_LABEL[s.kind] ?? 'Booking'} booked`}`,
         ...(description ? [`DESCRIPTION:${description}`] : []),
         `URL:${config.publicBaseUrl}/${trip.slug}`,
         'END:VEVENT',

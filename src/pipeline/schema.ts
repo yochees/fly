@@ -19,20 +19,21 @@ export const tripSchema = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['kind', 'carrier', 'carrier_name', 'number', 'booking_ref', 'from_code', 'from_city', 'to_code', 'to_city', 'depart_local', 'depart_tz', 'arrive_local', 'arrive_tz', 'cabin', 'seat', 'passengers'],
+        required: ['kind', 'carrier', 'carrier_name', 'number', 'booking_ref', 'address', 'from_code', 'from_city', 'to_code', 'to_city', 'depart_local', 'depart_tz', 'arrive_local', 'arrive_tz', 'cabin', 'seat', 'passengers'],
         properties: {
           kind: { type: 'string', enum: ['flight', 'train', 'bus', 'ferry', 'hotel', 'car', 'other'] },
-          carrier: { ...str, description: 'IATA code, e.g. LH.' },
-          carrier_name: str,
+          carrier: { ...str, description: 'IATA code, e.g. LH. Null for a hotel or a car.' },
+          carrier_name: { ...str, description: 'Airline, ferry line, hotel name or rental company.' },
           number: { ...str, description: 'Flight or train number, e.g. 1234.' },
-          booking_ref: { ...str, description: 'PNR or booking reference.' },
-          from_code: { ...str, description: 'IATA airport or station code.' },
+          booking_ref: { ...str, description: 'PNR, confirmation number or booking reference.' },
+          address: { ...str, description: 'Street address of a hotel or a rental desk. Null for anything that moves.' },
+          from_code: { ...str, description: 'IATA airport, station or port code. For a hotel or a car, the nearest city or airport code.' },
           from_city: str,
           to_code: str,
           to_city: str,
-          depart_local: { ...str, description: 'YYYY-MM-DDTHH:MM in the local time of the departure point. Never convert to UTC.' },
+          depart_local: { ...str, description: 'YYYY-MM-DDTHH:MM local. Departure, check in, or car pick up. Never convert to UTC.' },
           depart_tz: { ...str, description: 'IANA zone of the departure point, e.g. Europe/Vilnius.' },
-          arrive_local: str,
+          arrive_local: { ...str, description: 'YYYY-MM-DDTHH:MM local. Arrival, check out, or car drop off.' },
           arrive_tz: str,
           cabin: str,
           seat: str,
@@ -45,6 +46,7 @@ export const tripSchema = {
 
 export type ExtractedSegment = {
   kind: string;
+  address: string | null;
   carrier: string | null;
   carrier_name: string | null;
   number: string | null;

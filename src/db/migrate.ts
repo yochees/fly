@@ -85,6 +85,7 @@ const statements = [
      carrier_name TEXT,
      number TEXT,
      booking_ref TEXT,
+     address TEXT,
      from_code TEXT,
      from_city TEXT,
      to_code TEXT,
@@ -144,6 +145,7 @@ async function addColumn(table: string, column: string, type: string) {
 export async function migrate() {
   for (const sql of statements) await client.execute(sql);
   await addColumn('trips', 'private_key', 'TEXT');
+  await addColumn('segments', 'address', 'TEXT');
   await client.execute(`CREATE UNIQUE INDEX IF NOT EXISTS trips_private_key_idx ON trips(private_key)`);
 
   // Trips made before the split get a key now, so their owner link works.

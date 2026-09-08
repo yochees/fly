@@ -1,0 +1,18 @@
+{
+  "event": "message.received",
+  "event_id": "evt_fixture_car",
+  "occurred_at": "2026-09-09T08:05:00.000Z",
+  "inbox_id": "b67a3041-23b2-42c1-bbaa-8c6d7fd6b17d",
+  "thread_id": "thr_fixture_car",
+  "message": {
+    "id": "msg_fixture_car",
+    "rfc_message_id": "<sixt-2291@sixt.com>",
+    "from": "algimantas.jocys@diz.lt",
+    "to": "fly@omail.sh",
+    "cc": [],
+    "subject": "Fwd: Sixt rental confirmation NCE Airport",
+    "body_text": "---------- Forwarded message ---------\nFrom: Sixt <noreply@sixt.com>\n\nReservation number: 9927341188\n\nPick-up:  Nice Cote d'Azur Airport (NCE), Terminal 2 rental desk\n          Wed 16 September 2026 at 18:00\nReturn:   Nice Cote d'Azur Airport (NCE), Terminal 2\n          Wed 23 September 2026 at 15:30\n\nVehicle group: Compact, VW Golf or similar\nDriver: Laura Janaviciute\n",
+    "attachments": [],
+    "received_at": "2026-09-09T08:05:00.000Z"
+  }
+}
