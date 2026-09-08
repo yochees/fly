@@ -16,12 +16,12 @@
   },
 
   "d1_databases": [
-    { "binding": "DB", "database_name": "fly", "database_id": "REPLACE_AFTER_CREATE", "migrations_dir": "migrations" }
+    { "binding": "DB", "database_name": "fly", "database_id": "bae96c15-d51f-45ab-b70a-c4f73659e832", "migrations_dir": "migrations" }
   ],
 
-  "r2_buckets": [
-    { "binding": "FILES", "bucket_name": "fly-files" }
-  ],
+  // R2 is optional: it keeps our own copy of attachments. Until it is enabled
+  // on the account, the pipeline fetches each file from OpenMail instead.
+  // "r2_buckets": [{ "binding": "FILES", "bucket_name": "fly-files" }],
 
   "queues": {
     "producers": [{ "binding": "JOBS", "queue": "fly-jobs" }],

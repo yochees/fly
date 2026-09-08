@@ -36,16 +36,15 @@ export async function processEmail(emailId: string): Promise<void> {
   const enriched = [];
   for (const a of atts) {
     let bytes: ArrayBuffer | undefined;
-    if (a.storageKey) {
-      bytes = (await storage.get(a.storageKey)) ?? undefined;
-    } else if (DOWNLOAD_TYPES.test(a.contentType ?? '')) {
+    if (a.storageKey) bytes = (await storage.get(a.storageKey)) ?? undefined;
+
+    if (!bytes && DOWNLOAD_TYPES.test(a.contentType ?? '')) {
       const payload = JSON.parse(email.payload);
       const source = (payload.message?.attachments ?? []).find((x: any) => x.filename === a.filename);
       if (source?.url) {
         bytes = await downloadAttachment(source.url);
-        const key = `${emailId}/${storage.safeName(a.filename)}`;
-        await storage.put(key, bytes, a.contentType ?? undefined);
-        await db.update(attachments).set({ storageKey: key }).where(eq(attachments.id, a.id));
+        const key = await storage.put(`${emailId}/${storage.safeName(a.filename)}`, bytes, a.contentType ?? undefined);
+        if (key) await db.update(attachments).set({ storageKey: key }).where(eq(attachments.id, a.id));
       }
     }
     enriched.push({

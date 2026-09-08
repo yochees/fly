@@ -1,13 +1,23 @@
 import { env } from '../env.ts';
 
-/** Attachments live in R2, keyed by email id and file name. */
-export async function put(key: string, data: ArrayBuffer | Uint8Array | string, contentType?: string): Promise<string> {
-  await env().FILES.put(key, data as ArrayBuffer, contentType ? { httpMetadata: { contentType } } : undefined);
+/**
+ * Attachments live in R2 when the bucket is bound. Without it nothing is kept
+ * and the pipeline downloads from OpenMail each time, which costs one request
+ * and loses only our own archive copy.
+ */
+export const enabled = () => Boolean(env().FILES);
+
+export async function put(key: string, data: ArrayBuffer | Uint8Array | string, contentType?: string): Promise<string | null> {
+  const bucket = env().FILES;
+  if (!bucket) return null;
+  await bucket.put(key, data as ArrayBuffer, contentType ? { httpMetadata: { contentType } } : undefined);
   return key;
 }
 
 export async function get(key: string): Promise<ArrayBuffer | null> {
-  const object = await env().FILES.get(key);
+  const bucket = env().FILES;
+  if (!bucket) return null;
+  const object = await bucket.get(key);
   return object ? object.arrayBuffer() : null;
 }
 

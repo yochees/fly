@@ -81,8 +81,13 @@ See `.env`. The values that matter:
 
 ## Where it runs
 
-Cloudflare Workers on `fly.diz.lt`, with D1 (`fly`), R2 (`fly-files`) and a
-queue (`fly-jobs`). The OpenMail webhook for the `fly` inbox points at
+Cloudflare Workers on `fly.diz.lt`, with D1 (`fly`) and a queue (`fly-jobs`).
+
+R2 is optional and currently off. It would keep our own copy of every
+attachment; without it the pipeline downloads each file from OpenMail when it
+needs it, which costs one request and loses only the archive copy. To turn it
+on: enable R2 in the dashboard, create the `fly-files` bucket, and uncomment
+the binding in `wrangler.jsonc`. The OpenMail webhook for the `fly` inbox points at
 `https://fly.diz.lt/hooks/openmail`.
 
 The webhook only stores the message and enqueues; the parse happens in the

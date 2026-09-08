@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 
 export type Env = {
   DB: D1Database;
-  FILES: R2Bucket;
+  FILES?: R2Bucket;                 // optional, see wrangler.jsonc
   JOBS: Queue<unknown>;
 
   // secrets, set with: wrangler secret put <NAME>
