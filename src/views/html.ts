@@ -234,6 +234,13 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 }
 .share-note { margin: .7rem 0 0; font-size: .82rem; color: var(--faint); }
 
+/* ---- site footer ---- */
+.site-footer {
+  margin: 1.6rem .25rem 0; font-size: .78rem; color: var(--faint);
+}
+.site-footer a { color: var(--faint); text-decoration: underline; text-underline-offset: 2px; }
+.site-footer a:hover { color: var(--accent); }
+
 /* ---- copyable codes ---- */
 .cp {
   font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0;
@@ -291,6 +298,9 @@ pre {
 }
 `;
 
+/** Composing a new message, so mailto is the right gesture here. */
+const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto:fly@diz.lt?subject=fly%20feedback">fly@diz.lt</a></footer>`;
+
 export function page(title: string, body: string): string {
   return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -298,5 +308,5 @@ export function page(title: string, body: string): string {
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <title>${esc(title)}</title><style>${CSS}</style></head>
-<body><div class="wrap">${body}</div>${COPY_JS}</body></html>`;
+<body><div class="wrap">${body}${FOOTER}</div>${COPY_JS}</body></html>`;
 }
