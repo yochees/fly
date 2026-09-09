@@ -171,7 +171,7 @@ function calendarHtml(base: string, perItem: string): string {
     </summary>
     <div class="menu" role="menu">
       <a role="menuitem" href="${base}">One event for the whole trip<span class="note">Departure to final arrival</span></a>
-      <a role="menuitem" href="${base}?mode=flights">One event per ${perItem}<span class="note">A zip with one file per ${perItem}</span></a>
+      <a role="menuitem" href="${base}${base.includes('?') ? '&' : '?'}mode=flights">One event per ${perItem}<span class="note">A zip with one file per ${perItem}</span></a>
     </div>
   </details>
 </div>`;
@@ -201,7 +201,16 @@ document.addEventListener('keydown', (e) => {
 });
 </script>`;
 
-export function tripPage(trip: Trip, segs: Segment[], view: View): string {
+export type CardOptions = {
+  /** Where the calendar links point. Defaults to this trip's own files. */
+  icsBase?: string;
+  /** The share box and the trip id belong on a real page, not in a demo. */
+  chrome?: boolean;
+};
+
+/** The card itself, so the landing page can show a real one, not a picture. */
+export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardOptions = {}): string {
+  const { chrome = true } = options;
   const range = trip.startDate
     ? `${dayLabel(trip.startDate)}${trip.endDate && trip.endDate !== trip.startDate ? ` &ndash; ${dayLabel(trip.endDate)}` : ''}`
     : '';
@@ -247,7 +256,7 @@ export function tripPage(trip: Trip, segs: Segment[], view: View): string {
 </div>`);
   }
 
-  const body = `<div class="card">
+  return `<div class="card">
 ${view === 'private' && trip.needsReview ? '<div class="flag">Some details were unclear when this was read. Check the times against your ticket.</div>' : ''}
 <h1>${esc(trip.title ?? 'Trip')}</h1>
 <p class="sub">${range}${flights.length ? ` &middot; ${flights.map((f) => `<b>${esc(f)}</b>`).join(', ')}` : ''}</p>
@@ -256,15 +265,16 @@ ${view === 'private' && trip.needsReview ? '<div class="flag">Some details were 
 ${rail.filter(Boolean).join('\n')}
 </div>
 
-<div class="actions">
-  <span class="id">fly &middot; ${esc(trip.slug)}</span>
+<div class="actions${chrome ? '' : ' actions-end'}">
+  ${chrome ? `<span class="id">fly &middot; ${esc(trip.slug)}</span>` : ''}
   ${calendarHtml(icsBase, perItem)}
 </div>
-${view === 'private' ? shareHtml(trip) : ''}
-</div>
-${MENU_JS}`;
+${chrome && view === 'private' ? shareHtml(trip) : ''}
+</div>`;
+}
 
-  return page(trip.title ?? `Trip ${trip.slug}`, body);
+export function tripPage(trip: Trip, segs: Segment[], view: View): string {
+  return page(trip.title ?? `Trip ${trip.slug}`, `${tripCard(trip, segs, view)}${MENU_JS}`);
 }
 
 const slugify = (v: string) => v.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '');

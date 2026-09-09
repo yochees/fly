@@ -270,7 +270,8 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .addr .cp-icon { opacity: .7; }
 
 /* ---- sample ---- */
-.sample-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; }
+.sample-head { display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; margin: 1.6rem .25rem .7rem; }
 .sample-label { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
 .toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
 .toggle button {
@@ -280,11 +281,9 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .toggle button.on { background: var(--accent); color: var(--paper); }
 .toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.sample-title { font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; margin: 0 0 .2rem; }
-.sample[data-view="private"] .public-only { display: none; }
-.sample[data-view="public"] .private-only { display: none; }
-.sample .split .main, .sample .split .more { cursor: default; }
-.sample-note { margin: 1rem 0 0; font-size: .82rem; color: var(--faint); }
+.sample[data-view="private"] > .public-only { display: none; }
+.sample[data-view="public"] > .private-only { display: none; }
+.sample h1 { font-size: 1.35rem; }
 .actions-end { justify-content: flex-end; }
 
 /* ---- admin tables ---- */
