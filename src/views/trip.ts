@@ -266,8 +266,7 @@ ${view === 'private' && trip.needsReview ? '<div class="flag">Some details were 
 ${rail.filter(Boolean).join('\n')}
 </div>
 
-<div class="actions${chrome ? '' : ' actions-end'}">
-  ${chrome ? `<span class="id">fly &middot; ${esc(trip.slug)}</span>` : ''}
+<div class="actions">
   ${calendarHtml(icsBase, perItem)}
 </div>
 ${chrome && view === 'private' ? shareHtml(trip) : ''}

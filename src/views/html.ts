@@ -187,11 +187,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .span-rest { color: var(--faint); font-size: .82rem; margin-top: .05rem; }
 
 /* ---- actions ---- */
-.actions {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
-  margin-top: 1.8rem; padding-top: 1.1rem; border-top: 1px solid var(--rule);
-}
-.id { font-family: var(--mono); font-size: .78rem; color: var(--faint); letter-spacing: .04em; }
+.actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.8rem; }
 
 .split { position: relative; display: inline-flex; align-items: stretch;
   border: 1.5px solid var(--accent-line); border-radius: 999px; background: transparent; }
@@ -284,7 +280,6 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .sample[data-view="private"] > .public-only { display: none; }
 .sample[data-view="public"] > .private-only { display: none; }
 .sample h1 { font-size: 1.35rem; }
-.actions-end { justify-content: flex-end; }
 
 /* ---- admin tables ---- */
 table { border-collapse: collapse; width: 100%; font-size: .88rem; }
