@@ -8,7 +8,7 @@ import { page } from './html.ts';
  */
 export function privacyPage(): string {
   const body = `<div class="card prose">
-  <h1>Privacy</h1>
+  <h1>Privacy policy</h1>
   <p class="lede">For debugging there is basically no privacy. Read that first, then the detail.</p>
 
   <h2>Who can read what you send</h2>
@@ -34,5 +34,5 @@ export function privacyPage(): string {
   <p class="stamp">9 September 2026</p>
 </div>`;
 
-  return page('fly - privacy', body);
+  return page('fly - privacy policy', body);
 }

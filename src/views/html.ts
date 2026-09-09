@@ -71,7 +71,7 @@ export const CSS = `
   /* Timeline geometry, so the rail and the dots cannot drift apart. */
   --dot: 12px;
   --gutter: 1.75rem;
-  --when-size: 1.12rem;
+  --when-size: 18px;
   --when-line: 1.4;
   --mark-top: calc((var(--when-size) * var(--when-line) - var(--dot)) / 2);
   --rail-x: calc(var(--dot) / 2 - 1px);
@@ -108,7 +108,7 @@ export const CSS = `
 *, *::before, *::after { box-sizing: border-box; }
 body {
   margin: 0; background: var(--ground); color: var(--ink);
-  font-family: var(--sans); font-size: 16.5px; line-height: 1.55;
+  font-family: var(--sans); font-size: 16px; line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 .wrap { max-width: 34rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
@@ -121,13 +121,13 @@ a { color: var(--accent); }
 }
 @media (max-width: 30rem) { .card { padding: 1.5rem 1.15rem 1.2rem; } }
 
-h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 .2rem; text-wrap: balance; }
-.sub { color: var(--muted); font-size: .92rem; margin: 0 0 1.6rem; }
+h1 { font-size: 24px; font-weight: 700; letter-spacing: -.025em; margin: 0 0 .2rem; text-wrap: balance; }
+.sub { color: var(--muted); font-size: 14px; margin: 0 0 1.6rem; }
 .sub b { color: var(--ink); font-weight: 500; }
 
 .flag {
   background: var(--accent-soft); color: var(--ink); border: 1px solid var(--accent-line);
-  border-radius: 10px; padding: .6rem .85rem; font-size: .87rem; margin-bottom: 1.2rem;
+  border-radius: 10px; padding: .6rem .85rem; font-size: 14px; margin-bottom: 1.2rem;
 }
 
 /* ---- timeline ---- */
@@ -158,11 +158,11 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
   top: calc(var(--mark-top) + var(--dot)); bottom: -1rem; width: 2px; background: var(--paper);
 }
 .when { font-size: var(--when-size); line-height: var(--when-line); font-weight: 700; letter-spacing: -.015em; }
-.where { font-size: .95rem; color: var(--muted); margin-top: .05rem; }
+.where { font-size: 16px; color: var(--muted); margin-top: .05rem; }
 .where b { color: var(--ink); font-weight: 500; }
 
 .hop {
-  margin: .5rem 0 .5rem calc(var(--gutter) * -1); padding-left: var(--gutter); font-size: .8rem; color: var(--muted); letter-spacing: 0;
+  margin: .5rem 0 .5rem calc(var(--gutter) * -1); padding-left: var(--gutter); font-size: 14px; color: var(--muted); letter-spacing: 0;
 }
 .hop b { color: var(--ink); font-weight: 500; }
 
@@ -173,20 +173,20 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
   background-color: var(--paper);
   background-image: repeating-linear-gradient(var(--line) 0 4px, transparent 4px 9px);
 }
-.stay .k { font-size: .7rem; letter-spacing: 0; text-transform: uppercase; color: var(--faint); }
-.stay .v { font-size: .95rem; font-weight: 500; margin-top: .1rem; }
+.stay .k { font-size: 12px; letter-spacing: 0; text-transform: uppercase; color: var(--faint); }
+.stay .v { font-size: 16px; font-weight: 500; margin-top: .1rem; }
 
 /* A hotel or a car booked inside the gap. */
-.span { margin-top: .6rem; font-size: .9rem; }
+.span { margin-top: .6rem; font-size: 14px; }
 .span + .span { margin-top: .5rem; }
 .span .tag {
-  display: inline-block; font-size: .68rem; letter-spacing: 0; text-transform: uppercase;
+  display: inline-block; font-size: 12px; letter-spacing: 0; text-transform: uppercase;
   color: var(--accent); background: var(--accent-soft); border-radius: 999px;
   padding: .1rem .5rem; vertical-align: .06em; margin-right: .35rem;
 }
 .span-top b { font-weight: 500; }
-.span-when { color: var(--muted); font-size: .85rem; margin-top: .1rem; }
-.span-rest { color: var(--faint); font-size: .82rem; margin-top: .05rem; }
+.span-when { color: var(--muted); font-size: 14px; margin-top: .1rem; }
+.span-rest { color: var(--faint); font-size: 14px; margin-top: .05rem; }
 
 /* ---- actions ---- */
 .actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.8rem; }
@@ -194,7 +194,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .split { position: relative; display: inline-flex; align-items: stretch;
   border: 1.5px solid var(--accent-line); border-radius: 999px; background: transparent; }
 .split .main, .split .more {
-  font: inherit; font-size: .88rem; font-weight: 500; color: var(--accent);
+  font: inherit; font-size: 14px; font-weight: 500; color: var(--accent);
   background: transparent; border: 0; cursor: pointer; text-decoration: none;
   display: inline-flex; align-items: center; gap: .45rem;
 }
@@ -217,53 +217,52 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 }
 .menu a {
   display: block; padding: .5rem .7rem; border-radius: 8px;
-  color: var(--ink); text-decoration: none; font-size: .88rem;
+  color: var(--ink); text-decoration: none; font-size: 14px;
 }
 .menu a:hover, .menu a:focus-visible { background: var(--accent-soft); outline: none; }
-.menu .note { display: block; font-size: .76rem; color: var(--faint); margin-top: .1rem; }
+.menu .note { display: block; font-size: 12px; color: var(--faint); margin-top: .1rem; }
 
 /* ---- share ---- */
 .share { border-top: 1px solid var(--rule); margin-top: 1.4rem; padding-top: 1.2rem; }
-.share-label { margin: 0 0 .6rem; font-size: .7rem; text-transform: uppercase; letter-spacing: 0; color: var(--faint); }
+.share-label { margin: 0 0 .6rem; font-size: 12px; text-transform: uppercase; letter-spacing: 0; color: var(--faint); }
 .share-row { display: flex; gap: .5rem; }
 .share-url {
-  flex: 1; min-width: 0; font: inherit; font-size: .9rem; padding: .5rem .7rem;
+  flex: 1; min-width: 0; font: inherit; font-size: 14px; padding: .5rem .7rem;
   border: 1px solid var(--line); border-radius: 9px; background: var(--ground); color: var(--ink);
 }
 .btn {
-  font: inherit; font-size: .88rem; font-weight: 500; padding: .5rem 1rem; border: 0;
+  font: inherit; font-size: 14px; font-weight: 500; padding: .5rem 1rem; border: 0;
   border-radius: 9px; background: var(--accent); color: var(--paper); cursor: pointer;
 }
-.share-note { margin: .7rem 0 0; font-size: .82rem; color: var(--faint); }
+.share-note { margin: .7rem 0 0; font-size: 14px; color: var(--faint); }
 
 /* ---- site footer ---- */
 .site-footer {
-  margin: 1.6rem .25rem 0; font-size: .78rem; color: var(--faint);
+  margin: 1.6rem .25rem 0; font-size: 12px; color: var(--faint);
 }
 .site-footer a { color: var(--faint); text-decoration: underline; text-underline-offset: 2px; }
 .site-footer a:hover { color: var(--accent); }
 
 /* ---- prose pages ---- */
-.prose h1 { font-size: 1.6rem; margin-bottom: .4rem; }
-.prose .lede { font-size: 1rem; color: var(--ink); margin: 0 0 1.8rem; }
-.prose h2 { font-size: .78rem; letter-spacing: 0; text-transform: uppercase;
+.prose h1 { font-size: 24px; margin-bottom: .4rem; }
+.prose .lede { font-size: 16px; color: var(--ink); margin: 0 0 1.8rem; }
+.prose h2 { font-size: 12px; letter-spacing: 0; text-transform: uppercase;
   color: var(--faint); font-weight: 500; margin: 1.8rem 0 .4rem; }
-.prose p { margin: 0 0 .8rem; color: var(--muted); font-size: .95rem; }
-.prose ul { margin: 0 0 .8rem; padding-left: 1.1rem; color: var(--muted); font-size: .95rem; }
+.prose p { margin: 0 0 .8rem; color: var(--muted); font-size: 16px; }
+.prose ul { margin: 0 0 .8rem; padding-left: 1.1rem; color: var(--muted); font-size: 16px; }
 .prose li { margin-bottom: .3rem; }
 .prose b { color: var(--ink); font-weight: 500; }
-.prose .stamp { margin-top: 2rem; font-size: .78rem; color: var(--faint); }
+.prose .stamp { margin-top: 2rem; font-size: 12px; color: var(--faint); }
 
 /* ---- copyable codes ---- */
 .cp {
-  font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; color: var(--accent); background: none; border: 0; padding: 0; margin: 0;
   cursor: pointer; display: inline; white-space: nowrap; border-radius: 3px;
 }
-.cp:hover { color: var(--accent); }
+.cp:hover { text-decoration: underline; text-underline-offset: 2px; }
 .cp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.cp svg { width: .92em; height: .92em; margin-left: .3em; vertical-align: -.13em; stroke-width: 1.7; }
-.cp-icon { color: var(--accent); opacity: .8; }
-.cp:hover { color: var(--accent); }
+.cp svg { width: 1em; height: 1em; margin-left: .3em; vertical-align: -.13em; stroke-width: 1.7; }
+.cp-icon { opacity: .85; }
 .cp:hover .cp-icon { opacity: 1; }
 .cp-done { display: none; color: var(--accent); }
 .cp.copied .cp-icon { display: none; }
@@ -275,11 +274,11 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .card + .card { margin-top: 1.25rem; }
 
 .home h1 {
-  font-size: 1.6rem; line-height: 1.45; font-weight: 500; letter-spacing: -.015em;
+  font-size: 24px; line-height: 1.45; font-weight: 500; letter-spacing: -.015em;
   margin: 0; text-wrap: pretty;
 }
 /* Inline, not a chip: it sits in the sentence and only the colour marks it. */
-.addr { font-size: .92em; font-weight: 500; color: var(--accent);
+.addr { font-weight: 700; color: var(--accent);
   border-bottom: 1px dashed var(--accent-line); border-radius: 0;
 }
 .addr:hover { border-bottom-style: solid; color: var(--accent); }
@@ -288,10 +287,10 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 /* ---- sample ---- */
 .sample-head { display: flex; align-items: center; justify-content: space-between;
   gap: 1rem; margin: 1.6rem .25rem .7rem; }
-.sample-label { font-size: .7rem; letter-spacing: 0; text-transform: uppercase; color: var(--faint); }
+.sample-label { font-size: 12px; letter-spacing: 0; text-transform: uppercase; color: var(--faint); }
 .toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
 .toggle button {
-  font: inherit; font-size: .8rem; font-weight: 500; color: var(--muted);
+  font: inherit; font-size: 14px; font-weight: 500; color: var(--muted);
   background: none; border: 0; border-radius: 999px; padding: .25rem .8rem; cursor: pointer;
 }
 .toggle button.on { background: var(--accent); color: var(--paper); }
@@ -299,21 +298,21 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 
 .sample[data-view="private"] > .public-only { display: none; }
 .sample[data-view="public"] > .private-only { display: none; }
-.sample h1 { font-size: 1.35rem; }
+.sample h1 { font-size: 20px; }
 
 /* ---- admin tables ---- */
-table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
-th { color: var(--faint); font-weight: 500; font-size: .78rem; text-transform: uppercase; letter-spacing: 0; }
+th { color: var(--faint); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0; }
 pre {
   background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
-  padding: .9rem; overflow-x: auto; font-size: .78rem;
+  padding: .9rem; overflow-x: auto; font-size: 12px;
   font-family: ui-monospace, monospace;             /* raw payloads only */
 }
 `;
 
 /** Composing a new message, so mailto is the right gesture here. */
-const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto:fly@diz.lt?subject=fly%20feedback">fly@diz.lt</a> &middot; <a href="/privacy">Privacy</a></footer>`;
+const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto:fly@diz.lt?subject=fly%20feedback">fly@diz.lt</a> &middot; <a href="/privacy">Privacy policy</a></footer>`;
 
 export function page(title: string, body: string): string {
   return `<!doctype html><html lang="en"><head>
