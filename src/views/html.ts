@@ -1,5 +1,7 @@
 /** No JSX anywhere: Node runs the TypeScript directly, and it only strips
  *  types. Template strings keep the app build-free. */
+import { config } from '../config.ts';
+
 export function esc(v: unknown): string {
   return String(v ?? '')
     .replace(/&/g, '&amp;')
@@ -314,9 +316,34 @@ pre {
 /** Composing a new message, so mailto is the right gesture here. */
 const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto:fly@diz.lt?subject=fly%20feedback">fly@diz.lt</a> &middot; <a href="/privacy">Privacy policy</a></footer>`;
 
+/**
+ * One description for every page, taken from the landing sentence. A shared
+ * trip link previews as the product, never as somebody's itinerary.
+ */
+function meta(): string {
+  const url = config.publicBaseUrl;
+  const address = config.openmail.inboxAddress || 'fly@omail.sh';
+  const description = `Forward your tickets and bookings to ${address} and get a clean, shareable agenda.`;
+  return `<meta name="description" content="${esc(description)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="fly">
+<meta property="og:title" content="Forward a ticket. Get a page.">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:url" content="${esc(url)}">
+<meta property="og:image" content="${esc(url)}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A trip page: two flights, a hotel and a car on one timeline.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Forward a ticket. Get a page.">
+<meta name="twitter:description" content="${esc(description)}">
+<meta name="twitter:image" content="${esc(url)}/og.png">`;
+}
+
 export function page(title: string, body: string): string {
   return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+${meta()}
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
