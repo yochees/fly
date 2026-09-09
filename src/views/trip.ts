@@ -217,7 +217,8 @@ export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardO
   // Only the things that move: a rental company in this line leaked the
   // booking to the public page.
   const flights = segs.filter(isMove).map((s) => [s.carrier, s.number].filter(Boolean).join(' ')).filter(Boolean);
-  const icsBase = view === 'private' && trip.privateKey ? `/t/${esc(trip.privateKey)}.ics` : `/${esc(trip.slug)}.ics`;
+  const icsBase = options.icsBase
+    ?? (view === 'private' && trip.privateKey ? `/t/${esc(trip.privateKey)}.ics` : `/${esc(trip.slug)}.ics`);
   const perItem = segs.every(isMove) && segs.every((s) => s.kind === 'flight') ? 'flight' : 'booking';
 
   const moves = segs.filter(isMove);
