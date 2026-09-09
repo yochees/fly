@@ -17,7 +17,7 @@ const app = new Hono();
 
 app.get('/health', (c) => c.json({ ok: true }));
 app.get('/privacy', (c) => c.html(privacyPage()));
-app.get('/og', (c) => c.html(ogPage()));
+app.get('/og', (c) => c.html(ogPage(Number(c.req.query('scale') ?? 1))));
 app.get('/og.png', () => new Response(ogPngBytes().buffer as ArrayBuffer, {
   headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' },
 }));

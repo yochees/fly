@@ -327,15 +327,15 @@ function meta(): string {
   return `<meta name="description" content="${esc(description)}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="fly">
-<meta property="og:title" content="Forward a ticket. Get a page.">
+<meta property="og:title" content="Forward tickets and get a shareable agenda">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(url)}">
 <meta property="og:image" content="${esc(url)}/og.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
 <meta property="og:image:alt" content="A trip page: two flights, a hotel and a car on one timeline.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Forward a ticket. Get a page.">
+<meta name="twitter:title" content="Forward tickets and get a shareable agenda">
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${esc(url)}/og.png">`;
 }
