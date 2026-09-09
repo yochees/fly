@@ -67,7 +67,6 @@ export const CSS = `
   --accent-line: #a6ccc3;
   --shadow: 0 1px 2px rgba(15,19,22,.05), 0 10px 28px -22px rgba(15,19,22,.45);
   --sans: "DM Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   /* Timeline geometry, so the rail and the dots cannot drift apart. */
   --dot: 12px;
@@ -163,8 +162,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .where b { color: var(--ink); font-weight: 500; }
 
 .hop {
-  margin: .5rem 0 .5rem calc(var(--gutter) * -1); padding-left: var(--gutter);
-  font-family: var(--mono); font-size: .8rem; color: var(--muted); letter-spacing: 0;
+  margin: .5rem 0 .5rem calc(var(--gutter) * -1); padding-left: var(--gutter); font-size: .8rem; color: var(--muted); letter-spacing: 0;
 }
 .hop b { color: var(--ink); font-weight: 500; }
 
@@ -254,7 +252,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .prose ul { margin: 0 0 .8rem; padding-left: 1.1rem; color: var(--muted); font-size: .95rem; }
 .prose li { margin-bottom: .3rem; }
 .prose b { color: var(--ink); font-weight: 500; }
-.prose .stamp { margin-top: 2rem; font-family: var(--mono); font-size: .78rem; color: var(--faint); }
+.prose .stamp { margin-top: 2rem; font-size: .78rem; color: var(--faint); }
 
 /* ---- copyable codes ---- */
 .cp {
@@ -263,9 +261,10 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 }
 .cp:hover { color: var(--accent); }
 .cp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.cp svg { width: .78em; height: .78em; margin-left: .28em; vertical-align: -.04em; }
-.cp-icon { opacity: .45; }
-.cp:hover .cp-icon { opacity: .9; }
+.cp svg { width: .92em; height: .92em; margin-left: .3em; vertical-align: -.13em; stroke-width: 1.7; }
+.cp-icon { color: var(--accent); opacity: .8; }
+.cp:hover { color: var(--accent); }
+.cp:hover .cp-icon { opacity: 1; }
 .cp-done { display: none; color: var(--accent); }
 .cp.copied .cp-icon { display: none; }
 .cp.copied .cp-done { display: inline; }
@@ -280,8 +279,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
   margin: 0; text-wrap: pretty;
 }
 /* Inline, not a chip: it sits in the sentence and only the colour marks it. */
-.addr {
-  font-family: var(--mono); font-size: .92em; font-weight: 500; color: var(--accent);
+.addr { font-size: .92em; font-weight: 500; color: var(--accent);
   border-bottom: 1px dashed var(--accent-line); border-radius: 0;
 }
 .addr:hover { border-bottom-style: solid; color: var(--accent); }
@@ -309,7 +307,8 @@ th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(-
 th { color: var(--faint); font-weight: 500; font-size: .78rem; text-transform: uppercase; letter-spacing: 0; }
 pre {
   background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
-  padding: .9rem; overflow-x: auto; font-size: .78rem; font-family: var(--mono);
+  padding: .9rem; overflow-x: auto; font-size: .78rem;
+  font-family: ui-monospace, monospace;             /* raw payloads only */
 }
 `;
 
@@ -321,7 +320,7 @@ export function page(title: string, body: string): string {
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <title>${esc(title)}</title><style>${CSS}</style></head>
 <body><div class="wrap">${body}${FOOTER}</div>${COPY_JS}</body></html>`;
 }
