@@ -143,9 +143,13 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .stop::before {
   content: ""; position: absolute; left: calc(var(--gutter) * -1);
   top: var(--mark-top); width: var(--dot); height: var(--dot); border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 0 3px var(--paper);
+  background: var(--paper); border: 2.5px solid var(--accent-line);
+  box-shadow: 0 0 0 3px var(--paper);
 }
-.stop.arrive::before { background: var(--paper); border: 2.5px solid var(--accent-line); }
+/* The two ends of the journey are solid. Everything between them is an
+   outline, so leaving home and arriving back read at a glance. */
+.rail > .stop:first-child::before,
+.rail > .stop:last-child::before { background: var(--accent); border-color: var(--accent); }
 /* The rail is one long line, so the last stop hides the tail below its dot.
    The offset is measured from the stop, which starts one gutter right of
    the rail, so the gutter has to come back off. */
