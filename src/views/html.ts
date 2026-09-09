@@ -164,7 +164,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 
 .hop {
   margin: .5rem 0 .5rem calc(var(--gutter) * -1); padding-left: var(--gutter);
-  font-family: var(--mono); font-size: .8rem; color: var(--muted); letter-spacing: .02em;
+  font-family: var(--mono); font-size: .8rem; color: var(--muted); letter-spacing: 0;
 }
 .hop b { color: var(--ink); font-weight: 500; }
 
@@ -175,14 +175,14 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
   background-color: var(--paper);
   background-image: repeating-linear-gradient(var(--line) 0 4px, transparent 4px 9px);
 }
-.stay .k { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+.stay .k { font-size: .7rem; letter-spacing: 0; text-transform: uppercase; color: var(--faint); }
 .stay .v { font-size: .95rem; font-weight: 500; margin-top: .1rem; }
 
 /* A hotel or a car booked inside the gap. */
 .span { margin-top: .6rem; font-size: .9rem; }
 .span + .span { margin-top: .5rem; }
 .span .tag {
-  display: inline-block; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase;
+  display: inline-block; font-size: .68rem; letter-spacing: 0; text-transform: uppercase;
   color: var(--accent); background: var(--accent-soft); border-radius: 999px;
   padding: .1rem .5rem; vertical-align: .06em; margin-right: .35rem;
 }
@@ -226,7 +226,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 
 /* ---- share ---- */
 .share { border-top: 1px solid var(--rule); margin-top: 1.4rem; padding-top: 1.2rem; }
-.share-label { margin: 0 0 .6rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--faint); }
+.share-label { margin: 0 0 .6rem; font-size: .7rem; text-transform: uppercase; letter-spacing: 0; color: var(--faint); }
 .share-row { display: flex; gap: .5rem; }
 .share-url {
   flex: 1; min-width: 0; font: inherit; font-size: .9rem; padding: .5rem .7rem;
@@ -248,7 +248,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 /* ---- prose pages ---- */
 .prose h1 { font-size: 1.6rem; margin-bottom: .4rem; }
 .prose .lede { font-size: 1rem; color: var(--ink); margin: 0 0 1.8rem; }
-.prose h2 { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase;
+.prose h2 { font-size: .78rem; letter-spacing: 0; text-transform: uppercase;
   color: var(--faint); font-weight: 500; margin: 1.8rem 0 .4rem; }
 .prose p { margin: 0 0 .8rem; color: var(--muted); font-size: .95rem; }
 .prose ul { margin: 0 0 .8rem; padding-left: 1.1rem; color: var(--muted); font-size: .95rem; }
@@ -290,7 +290,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 /* ---- sample ---- */
 .sample-head { display: flex; align-items: center; justify-content: space-between;
   gap: 1rem; margin: 1.6rem .25rem .7rem; }
-.sample-label { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+.sample-label { font-size: .7rem; letter-spacing: 0; text-transform: uppercase; color: var(--faint); }
 .toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
 .toggle button {
   font: inherit; font-size: .8rem; font-weight: 500; color: var(--muted);
@@ -306,7 +306,7 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 /* ---- admin tables ---- */
 table { border-collapse: collapse; width: 100%; font-size: .88rem; }
 th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
-th { color: var(--faint); font-weight: 500; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+th { color: var(--faint); font-weight: 500; font-size: .78rem; text-transform: uppercase; letter-spacing: 0; }
 pre {
   background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
   padding: .9rem; overflow-x: auto; font-size: .78rem; font-family: var(--mono);
