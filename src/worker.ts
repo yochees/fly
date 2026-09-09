@@ -5,6 +5,7 @@ import { webhook } from './routes/webhook.ts';
 import { tripRoutes, } from './routes/trip.ts';
 import { admin } from './routes/admin.ts';
 import { homePage } from './views/home.ts';
+import { privacyPage } from './views/privacy.ts';
 import { tripIcs, flightIcsFiles } from './views/trip.ts';
 import { sampleTrip, sampleSegments } from './views/sample.ts';
 import { zip } from './lib/zip.ts';
@@ -13,6 +14,7 @@ import type { Job } from './queue.ts';
 const app = new Hono();
 
 app.get('/health', (c) => c.json({ ok: true }));
+app.get('/privacy', (c) => c.html(privacyPage()));
 
 /**
  * The demo's calendar files, built by the same code as a real trip's.

@@ -245,6 +245,17 @@ h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 
 .site-footer a { color: var(--faint); text-decoration: underline; text-underline-offset: 2px; }
 .site-footer a:hover { color: var(--accent); }
 
+/* ---- prose pages ---- */
+.prose h1 { font-size: 1.6rem; margin-bottom: .4rem; }
+.prose .lede { font-size: 1rem; color: var(--ink); margin: 0 0 1.8rem; }
+.prose h2 { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--faint); font-weight: 500; margin: 1.8rem 0 .4rem; }
+.prose p { margin: 0 0 .8rem; color: var(--muted); font-size: .95rem; }
+.prose ul { margin: 0 0 .8rem; padding-left: 1.1rem; color: var(--muted); font-size: .95rem; }
+.prose li { margin-bottom: .3rem; }
+.prose b { color: var(--ink); font-weight: 500; }
+.prose .stamp { margin-top: 2rem; font-family: var(--mono); font-size: .78rem; color: var(--faint); }
+
 /* ---- copyable codes ---- */
 .cp {
   font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0;
@@ -303,7 +314,7 @@ pre {
 `;
 
 /** Composing a new message, so mailto is the right gesture here. */
-const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto:fly@diz.lt?subject=fly%20feedback">fly@diz.lt</a></footer>`;
+const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto:fly@diz.lt?subject=fly%20feedback">fly@diz.lt</a> &middot; <a href="/privacy">Privacy</a></footer>`;
 
 export function page(title: string, body: string): string {
   return `<!doctype html><html lang="en"><head>
