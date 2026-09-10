@@ -7,7 +7,7 @@ import type { Extracted, ExtractedSegment } from './schema.ts';
 import type { TripCandidate } from './extract.ts';
 
 const DAY = 86_400_000;
-const WINDOW_DAYS = 21;
+const WINDOW_DAYS = 60;   // either side, so a return booked months apart still merges
 
 const dateOf = (local: string | null) => (local ? local.slice(0, 10) : null);
 const json = (v: unknown) => JSON.stringify(v ?? []);
