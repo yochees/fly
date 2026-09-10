@@ -108,6 +108,12 @@ export const CSS = `
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+/* The canvas and the scrollbar take the page colour too. Without this the
+   scrollbar track paints the browser's default white beside a grey page. */
+html {
+  background: var(--ground);
+  scrollbar-color: var(--line) var(--ground);
+}
 body {
   margin: 0; background: var(--ground); color: var(--ink);
   font-family: var(--sans); font-size: 16px; line-height: 1.55;
