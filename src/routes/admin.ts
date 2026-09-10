@@ -30,7 +30,7 @@ ${rows.map((e) => `<tr>
   <td>${esc(e.status)}${e.error ? ' &#9888;' : ''}</td>
   <td><a href="/admin/emails/${esc(e.id)}?token=${esc(token)}">open</a></td>
 </tr>`).join('')}</table>`;
-  return c.html(page('fly admin', body));
+  return c.html(page('fly admin', body, { wide: true }));
 });
 
 admin.get('/admin/emails/:id', async (c) => {
@@ -78,7 +78,7 @@ ${runs.map((r) => `<h3>${esc(r.stage)} &middot; ${esc(r.model)} &middot; ${r.dur
 <h2>Raw webhook payload</h2>
 <pre>${esc(JSON.stringify(JSON.parse(email.payload), null, 2).slice(0, 20000))}</pre>`;
 
-  return c.html(page('email', body));
+  return c.html(page('email', body, { wide: true }));
 });
 
 admin.get('/admin/emails/:id/reparse', async (c) => {
@@ -93,5 +93,5 @@ admin.get('/admin/trips', async (c) => {
 ${rows.map((t2) => `<tr><td><a href="/${esc(t2.slug)}">${esc(t2.slug)}</a></td>
 <td><a href="/t/${esc(t2.privateKey)}">owner view</a></td><td>${esc(t2.title ?? '')}</td>
 <td>${esc(t2.startDate ?? '')} ${esc(t2.endDate ?? '')}</td><td>${t2.needsReview ? 'yes' : ''}</td></tr>`).join('')}</table>`;
-  return c.html(page('trips', body));
+  return c.html(page('trips', body, { wide: true }));
 });
