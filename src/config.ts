@@ -22,7 +22,7 @@ export const config = {
       apiKey: e.OPENAI_API_KEY,
       fast: e.MODEL_FAST ?? 'gpt-5.6-luna',
       strong: e.MODEL_STRONG ?? 'gpt-5.6-terra',
-      confidenceThreshold: Number(e.CONFIDENCE_THRESHOLD ?? 0.8),
+      confidenceThreshold: Number(e.CONFIDENCE_THRESHOLD ?? 0.5),
     };
   },
 

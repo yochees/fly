@@ -55,7 +55,7 @@ Rules:
 - Use the attachment text and images as the first source; the mail body is often a forwarding note.
 - Fill from_code and to_code with IATA codes. Add the city names you know.
 - Set is_travel false for anything with no booking: adverts, newsletters, price alerts.
-- Set confidence below 0.8 and needs_review true when a date, a time, a code or a number is unclear.
+- Set confidence below 0.5 and needs_review true when a date, a time, a code or a number is unclear.
 
 What each kind means:
 - flight, train, bus, ferry: something that moves the traveller. from and to are
