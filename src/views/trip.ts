@@ -1,4 +1,4 @@
-import { esc, page, copyable } from './html.ts';
+import { esc, page, copyable, type ShareMeta } from './html.ts';
 import { config } from '../config.ts';
 
 type Segment = {
@@ -60,6 +60,11 @@ function instant(local: string | null, tz: string | null): number | null {
   }
 }
 
+/** When a segment starts and ends. A ferry ticket often has no arrival time,
+ *  so its end falls back to the departure rather than dropping the gap after it. */
+const startOf = (s: Segment) => instant(s.departLocal, s.departTz);
+const endOf = (s: Segment) => instant(s.arriveLocal, s.arriveTz) ?? startOf(s);
+
 function humanDuration(ms: number): string {
   const mins = Math.round(ms / 60000);
   const h = Math.floor(mins / 60);
@@ -82,17 +87,19 @@ const KIND_LABEL: Record<string, string> = { hotel: 'Hotel', car: 'Car hire' };
 
 /**
  * A hotel or a car inside a gap. The public page gets the fact that something
- * is booked; the name, the address and the confirmation stay on the owner page,
- * where they are what you actually need at the desk.
+ * is booked and when; the name, the address and the confirmation stay on the
+ * owner page, where they are what you actually need at the desk.
  */
 function spanHtml(s: Segment, view: View): string {
   const kind = KIND_LABEL[s.kind] ?? 'Booking';
-  if (view === 'public') return `<div class="span"><span class="tag">${esc(kind)} booked</span></div>`;
-
-  const name = s.carrierName ?? s.carrier ?? kind;
   const when = s.departLocal && s.arriveLocal
     ? `${dayLabel(s.departLocal)} ${time(s.departLocal)} to ${dayLabel(s.arriveLocal)} ${time(s.arriveLocal)}`
     : s.departLocal ? `${dayLabel(s.departLocal)} ${time(s.departLocal)}` : '';
+  if (view === 'public') {
+    return `<div class="span"><span class="tag">${esc(kind)} booked</span>${when ? `<div class="span-when nums">${esc(when)}</div>` : ''}</div>`;
+  }
+
+  const name = s.carrierName ?? s.carrier ?? kind;
   const rest = [
     s.address ? esc(s.address) : '',
     s.bookingRef ? `ref ${copyable(s.bookingRef)}` : '',
@@ -108,21 +115,25 @@ function spanHtml(s: Segment, view: View): string {
 /**
  * The gap between two legs. The rail goes dotted through it, because the
  * timeline stops being to scale here: an hour and a week look the same.
- * It says how long, not where: people move around while they are there.
+ * It says how long and where: the town of the booked stay, else the arrival
+ * town. A town is not private; the hotel's name and street are.
  */
 function stayHtml(prev: Segment, next: Segment, spans: Segment[], view: View): string {
-  if (!prev.arriveLocal || !next.departLocal) return '';
-  const from = instant(prev.arriveLocal, prev.arriveTz);
-  const to = instant(next.departLocal, next.departTz);
+  const arrived = prev.arriveLocal ?? prev.departLocal;
+  if (!arrived || !next.departLocal) return '';
+  const from = endOf(prev);
+  const to = startOf(next);
   if (from === null || to === null || to <= from) return '';
   const gap = to - from;
   if (gap < 45 * 60_000 && !spans.length) return '';   // too short to be worth a line
 
-  const nights = nightsBetween(prev.arriveLocal, next.departLocal);
+  const nights = nightsBetween(arrived, next.departLocal);
   const isStay = nights >= 1;
   const airport = prev.toCode ?? '';
+  const towns = [...new Set(spans.filter((sp) => sp.kind === 'hotel').map((sp) => sp.toCity ?? sp.fromCity).filter(Boolean))];
+  const place = towns.length ? towns.join(' and ') : prev.toCity;
   const label = isStay
-    ? `${nights} night${nights === 1 ? '' : 's'}`
+    ? `${nights} night${nights === 1 ? '' : 's'}${place ? ` in ${place}` : ''}`
     : `${humanDuration(gap)}${airport ? ` at ${airport}` : ''}`;
 
   return `<div class="stay">
@@ -155,8 +166,8 @@ function legHtml(s: Segment, view: View, isFirstOfDay: boolean): string {
 
   return [
     stopHtml('', departWhen, `${esc(s.fromCity ?? '')} <b>${esc(s.fromCode ?? '')}</b>${departExtra ? ` &middot; ${departExtra}` : ''}`),
-    `<div class="hop">${duration ? `<b>${duration}</b> &middot; ` : ''}${flight ? copyable(flight) : ''}${s.carrierName ? ` &middot; ${esc(s.carrierName)}` : ''}</div>`,
-    stopHtml('arrive', arriveSameDay ? time(s.arriveLocal) : `${dayLabel(s.arriveLocal)} &middot; ${time(s.arriveLocal)}`,
+    `<div class="hop">${[duration ? `<b>${duration}</b>` : '', flight ? copyable(flight) : '', s.carrierName ? esc(s.carrierName) : ''].filter(Boolean).join(' &middot; ')}</div>`,
+    stopHtml('arrive', !s.arriveLocal || arriveSameDay ? time(s.arriveLocal) : `${dayLabel(s.arriveLocal)} &middot; ${time(s.arriveLocal)}`,
       `${esc(s.toCity ?? '')} <b>${esc(s.toCode ?? '')}</b>`),
   ].join('\n');
 }
@@ -221,35 +232,43 @@ export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardO
     ?? (view === 'private' && trip.privateKey ? `/t/${esc(trip.privateKey)}.ics` : `/${esc(trip.slug)}.ics`);
   const perItem = segs.every(isMove) && segs.every((s) => s.kind === 'flight') ? 'flight' : 'booking';
 
-  const moves = segs.filter(isMove);
+  // By the instant, not the stored string: a local time in another zone can
+  // sort before a leg that actually leaves earlier.
+  const moves = segs.filter(isMove).sort((a, b) => (startOf(a) ?? 0) - (startOf(b) ?? 0));
   const spans = segs.filter(isSpan);
-  const used = new Set<Segment>();
 
-  /** A hotel or car belongs to the gap its start falls inside. */
-  const spansBetween = (prev: Segment, next: Segment) => {
-    const from = instant(prev.arriveLocal, prev.arriveTz);
-    const to = instant(next.departLocal, next.departTz);
-    if (from === null || to === null) return [];
-    return spans.filter((sp) => {
-      if (used.has(sp)) return false;
-      const at = instant(sp.departLocal, sp.departTz);
-      if (at === null) return false;
-      const inside = at >= from - 12 * 3_600_000 && at <= to + 12 * 3_600_000;
-      if (inside) used.add(sp);
-      return inside;
-    });
-  };
+  /**
+   * A hotel or car belongs to the gap it overlaps most. Matching on the check
+   * in alone, with slack either side, put a Valbonë hotel that starts after the
+   * morning bus into the Shkodër night before it.
+   */
+  const gaps = moves.slice(1).map((next, i) => ({ from: endOf(moves[i]), to: startOf(next), spans: [] as Segment[] }));
+  const loose: Segment[] = [];
+  for (const sp of spans) {
+    const start = startOf(sp);
+    const end = endOf(sp);
+    let best: (typeof gaps)[number] | null = null;
+    let bestScore = 0;
+    for (const g of gaps) {
+      if (start === null || g.from === null || g.to === null) continue;
+      // A booking with no end is a point: it counts when it falls inside the gap.
+      const score = end !== null && end > start
+        ? Math.min(end, g.to) - Math.max(start, g.from)
+        : start >= g.from && start <= g.to ? 1 : 0;
+      if (score > bestScore) { best = g; bestScore = score; }
+    }
+    (best ? best.spans : loose).push(sp);
+  }
 
   const rail: string[] = [];
   moves.forEach((s, i) => {
-    if (i > 0) rail.push(stayHtml(moves[i - 1], s, spansBetween(moves[i - 1], s), view));
+    if (i > 0) rail.push(stayHtml(moves[i - 1], s, gaps[i - 1].spans, view));
     const newDay = i === 0 || moves[i - 1].arriveLocal?.slice(0, 10) !== s.departLocal?.slice(0, 10);
     rail.push(legHtml(s, view, newDay));
   });
 
   // A hotel with no flight around it, or one booked outside every gap, still
   // belongs on the page rather than being dropped.
-  const loose = spans.filter((sp) => !used.has(sp));
   if (loose.length) {
     rail.push(`<div class="stay">
   <div class="k">Booked</div>
@@ -273,8 +292,42 @@ ${chrome && view === 'private' ? shareHtml(trip) : ''}
 </div>`;
 }
 
+const COUNT_WORD: Record<string, [string, string]> = {
+  flight: ['flight', 'flights'], train: ['train', 'trains'], bus: ['bus', 'buses'],
+  ferry: ['ferry', 'ferries'], hotel: ['stay', 'stays'], car: ['car hire', 'car hires'],
+};
+
+/**
+ * The link preview for one trip. Built only from what the public page shows,
+ * dates, places and counts, so pasting the owner link into a chat leaks no
+ * name, reference or hotel either.
+ */
+function shareMeta(trip: Trip, segs: Segment[]): ShareMeta {
+  const range = trip.startDate
+    ? `${dayLabel(trip.startDate)}${trip.endDate && trip.endDate !== trip.startDate ? ` – ${dayLabel(trip.endDate)}` : ''}`
+    : '';
+  const places: string[] = [];
+  for (const s of segs.filter(isMove)) {
+    for (const p of [s.fromCity ?? s.fromCode, s.toCity ?? s.toCode]) {
+      if (p && places[places.length - 1] !== p) places.push(p);
+    }
+  }
+  const counts = Object.entries(COUNT_WORD)
+    .map(([kind, [one, many]]) => {
+      const n = segs.filter((s) => s.kind === kind).length;
+      return n ? `${n} ${n === 1 ? one : many}` : '';
+    })
+    .filter(Boolean);
+  const description = [range, places.join(' → '), counts.join(', ')].filter(Boolean).join(' · ');
+  return {
+    title: trip.title ?? 'A trip',
+    description: description || 'A trip on fly',
+    url: `${config.publicBaseUrl}/${trip.slug}`,
+  };
+}
+
 export function tripPage(trip: Trip, segs: Segment[], view: View): string {
-  return page(trip.title ?? `Trip ${trip.slug}`, `${tripCard(trip, segs, view)}${MENU_JS}`);
+  return page(trip.title ?? `Trip ${trip.slug}`, `${tripCard(trip, segs, view)}${MENU_JS}`, { share: shareMeta(trip, segs) });
 }
 
 const slugify = (v: string) => v.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '');
