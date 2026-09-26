@@ -268,9 +268,6 @@ export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardO
   const range = trip.startDate
     ? `${dayLabel(trip.startDate)}${trip.endDate && trip.endDate !== trip.startDate ? ` &ndash; ${dayLabel(trip.endDate)}` : ''}`
     : '';
-  // Only the things that move: a rental company in this line leaked the
-  // booking to the public page.
-  const flights = segs.filter(isMove).map((s) => [s.carrier, s.number].filter(Boolean).join(' ')).filter(Boolean);
   const icsBase = options.icsBase
     ?? (view === 'private' && trip.privateKey ? `/t/${esc(trip.privateKey)}.ics` : `/${esc(trip.slug)}.ics`);
   const perItem = segs.every(isMove) && segs.every((s) => s.kind === 'flight') ? 'flight' : 'booking';
@@ -322,7 +319,7 @@ export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardO
   return `<div class="card${variant ? ` ${variantClass(variant)}` : ''}">
 ${view === 'private' && trip.needsReview ? '<div class="flag">Some details were unclear when this was read. Check the times against your ticket.</div>' : ''}
 <h1>${esc(trip.title ?? 'Trip')}</h1>
-<p class="sub">${range}${flights.length ? ` &middot; ${flights.map((f) => `<b>${esc(f)}</b>`).join(', ')}` : ''}</p>
+${range ? `<p class="sub"><b>${range}</b></p>` : ''}
 
 <div class="rail">
 ${rail.filter(Boolean).join('\n')}
