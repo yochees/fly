@@ -10,6 +10,8 @@ import { ogPage } from './views/og.ts';
 import { ogPngBytes } from './og-image.ts';
 import { tripIcs, flightIcsFiles } from './views/trip.ts';
 import { sampleTrip, sampleSegments } from './views/sample.ts';
+import { variantsPage } from './views/variants.ts';
+import { config } from './config.ts';
 import { zip } from './lib/zip.ts';
 import type { Job } from './queue.ts';
 
@@ -47,6 +49,23 @@ app.get('/sample.ics', (c) => {
       'Content-Disposition': 'attachment; filename="sample-trip.ics"',
     },
   });
+});
+
+/**
+ * Design variants for telling bookings apart. Local only, and registered
+ * before the trip routes: `variants` also matches a slug.
+ */
+app.get('/variants', (c) => {
+  // wrangler dev rewrites the request host to the production domain, so the
+  // configured base URL is what tells local from live.
+  if (!/^http:\/\/(localhost|127\.0\.0\.1)[:/]/.test(`${config.publicBaseUrl}/`)) return c.text('Not found', 404);
+  const theme = c.req.query('theme');
+  return c.html(variantsPage({
+    view: c.req.query('view') === 'public' ? 'public' : 'private',
+    car: c.req.query('car') === '1',
+    only: Number(c.req.query('v')) || null,
+    theme: theme === 'light' || theme === 'dark' ? theme : null,
+  }));
 });
 
 app.route('/', webhook);

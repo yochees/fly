@@ -1,5 +1,6 @@
 import { esc, page, copyable, type ShareMeta } from './html.ts';
 import { config } from '../config.ts';
+import { kindIcon, kindLabel, KIND_ICON } from './kinds.ts';
 
 type Segment = {
   kind: string; carrier: string | null; carrierName: string | null; number: string | null;
@@ -90,13 +91,13 @@ const KIND_LABEL: Record<string, string> = { hotel: 'Hotel', car: 'Car hire' };
  * is booked and when; the name, the address and the confirmation stay on the
  * owner page, where they are what you actually need at the desk.
  */
-function spanHtml(s: Segment, view: View): string {
+function spanHtml(s: Segment, view: View, kinds = false): string {
   const kind = KIND_LABEL[s.kind] ?? 'Booking';
   const when = s.departLocal && s.arriveLocal
     ? `${dayLabel(s.departLocal)} ${time(s.departLocal)} to ${dayLabel(s.arriveLocal)} ${time(s.arriveLocal)}`
     : s.departLocal ? `${dayLabel(s.departLocal)} ${time(s.departLocal)}` : '';
   if (view === 'public') {
-    return `<div class="span"><span class="tag">${esc(kind)} booked</span>${when ? `<div class="span-when nums">${esc(when)}</div>` : ''}</div>`;
+    return `<div class="span"${kinds ? ` data-kind="${esc(s.kind)}"` : ''}><span class="tag">${kinds ? KIND_ICON[s.kind] ?? '' : ''}${esc(kind)} booked</span>${when ? `<div class="span-when nums">${esc(when)}</div>` : ''}</div>`;
   }
 
   const name = s.carrierName ?? s.carrier ?? kind;
@@ -105,8 +106,8 @@ function spanHtml(s: Segment, view: View): string {
     s.bookingRef ? `ref ${copyable(s.bookingRef)}` : '',
   ].filter(Boolean).join(' &middot; ');
 
-  return `<div class="span">
-  <div class="span-top"><span class="tag">${esc(kind)}</span> <b>${esc(name)}</b></div>
+  return `<div class="span"${kinds ? ` data-kind="${esc(s.kind)}"` : ''}>
+  <div class="span-top"><span class="tag">${kinds ? KIND_ICON[s.kind] ?? '' : ''}${esc(kind)}</span> <b>${esc(name)}</b></div>
   ${when ? `<div class="span-when nums">${esc(when)}</div>` : ''}
   ${rest ? `<div class="span-rest">${rest}</div>` : ''}
 </div>`;
@@ -118,7 +119,7 @@ function spanHtml(s: Segment, view: View): string {
  * It says how long and where: the town of the booked stay, else the arrival
  * town. A town is not private; the hotel's name and street are.
  */
-function stayHtml(prev: Segment, next: Segment, spans: Segment[], view: View): string {
+function stayHtml(prev: Segment, next: Segment, spans: Segment[], view: View, kinds = false): string {
   const arrived = prev.arriveLocal ?? prev.departLocal;
   if (!arrived || !next.departLocal) return '';
   const from = endOf(prev);
@@ -136,14 +137,18 @@ function stayHtml(prev: Segment, next: Segment, spans: Segment[], view: View): s
     ? `${nights} night${nights === 1 ? '' : 's'}${place ? ` in ${place}` : ''}`
     : `${humanDuration(gap)}${airport ? ` at ${airport}` : ''}`;
 
-  return `<div class="stay">
+  // The stay takes the kind of what fills it: a hotel over a car.
+  const filler = spans.some((sp) => sp.kind === 'hotel') ? 'hotel' : spans[0]?.kind;
+  const mark = kinds && filler ? ` data-kind="${esc(filler)}"` : '';
+  return `<div class="stay"${mark}>
+  ${kinds && isStay ? kindIcon(filler ?? 'hotel') : ''}
   <div class="k">${isStay ? 'Stay' : 'Connection'}</div>
   <div class="v">${esc(label)}</div>
-  ${spans.map((s) => spanHtml(s, view)).join('')}
+  ${spans.map((s) => spanHtml(s, view, kinds)).join('')}
 </div>`;
 }
 
-function legHtml(s: Segment, view: View, isFirstOfDay: boolean): string {
+function legHtml(s: Segment, view: View, isFirstOfDay: boolean, kinds = false): string {
   const show = (field: (typeof HIDDEN_IN_PUBLIC)[number]) => view === 'private' || !HIDDEN_IN_PUBLIC.includes(field);
   const flight = [s.carrier, s.number].filter(Boolean).join(' ');
   const pax = (() => { try { return JSON.parse(s.passengers ?? '[]') as string[]; } catch { return []; } })();
@@ -164,12 +169,16 @@ function legHtml(s: Segment, view: View, isFirstOfDay: boolean): string {
 
   const arriveSameDay = s.departLocal && s.arriveLocal && s.departLocal.slice(0, 10) === s.arriveLocal.slice(0, 10);
 
-  return [
+  const parts = [
     stopHtml('', departWhen, `${esc(s.fromCity ?? '')} <b>${esc(s.fromCode ?? '')}</b>${departExtra ? ` &middot; ${departExtra}` : ''}`),
-    `<div class="hop">${[duration ? `<b>${duration}</b>` : '', flight ? copyable(flight) : '', s.carrierName ? esc(s.carrierName) : ''].filter(Boolean).join(' &middot; ')}</div>`,
+    `<div class="hop">${kinds ? `${kindIcon(s.kind)}${kindLabel(s.kind)}` : ''}${[duration ? `<b>${duration}</b>` : '', flight ? copyable(flight) : '', s.carrierName ? esc(s.carrierName) : ''].filter(Boolean).join(' &middot; ')}</div>`,
     stopHtml('arrive', !s.arriveLocal || arriveSameDay ? time(s.arriveLocal) : `${dayLabel(s.arriveLocal)} &middot; ${time(s.arriveLocal)}`,
       `${esc(s.toCity ?? '')} <b>${esc(s.toCode ?? '')}</b>`),
-  ].join('\n');
+  ];
+  // Wrapped, so a variant can draw the whole leg as one thing.
+  return kinds
+    ? `<div class="leg" data-kind="${esc(s.kind)}">${kindIcon(s.kind)}\n${parts.join('\n')}\n</div>`
+    : parts.join('\n');
 }
 
 function calendarHtml(base: string, perItem: string): string {
@@ -217,11 +226,14 @@ export type CardOptions = {
   icsBase?: string;
   /** The share box and the trip id belong on a real page, not in a demo. */
   chrome?: boolean;
+  /** One of the /variants styles that mark each kind of booking (kinds.ts). */
+  variant?: number;
 };
 
 /** The card itself, so the landing page can show a real one, not a picture. */
 export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardOptions = {}): string {
-  const { chrome = true } = options;
+  const { chrome = true, variant } = options;
+  const kinds = !!variant;
   const range = trip.startDate
     ? `${dayLabel(trip.startDate)}${trip.endDate && trip.endDate !== trip.startDate ? ` &ndash; ${dayLabel(trip.endDate)}` : ''}`
     : '';
@@ -262,9 +274,9 @@ export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardO
 
   const rail: string[] = [];
   moves.forEach((s, i) => {
-    if (i > 0) rail.push(stayHtml(moves[i - 1], s, gaps[i - 1].spans, view));
+    if (i > 0) rail.push(stayHtml(moves[i - 1], s, gaps[i - 1].spans, view, kinds));
     const newDay = i === 0 || moves[i - 1].arriveLocal?.slice(0, 10) !== s.departLocal?.slice(0, 10);
-    rail.push(legHtml(s, view, newDay));
+    rail.push(legHtml(s, view, newDay, kinds));
   });
 
   // A hotel with no flight around it, or one booked outside every gap, still
@@ -272,11 +284,11 @@ export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardO
   if (loose.length) {
     rail.push(`<div class="stay">
   <div class="k">Booked</div>
-  ${loose.map((sp) => spanHtml(sp, view)).join('')}
+  ${loose.map((sp) => spanHtml(sp, view, kinds)).join('')}
 </div>`);
   }
 
-  return `<div class="card">
+  return `<div class="card${kinds ? ` kinds kinds-${variant}` : ''}">
 ${view === 'private' && trip.needsReview ? '<div class="flag">Some details were unclear when this was read. Check the times against your ticket.</div>' : ''}
 <h1>${esc(trip.title ?? 'Trip')}</h1>
 <p class="sub">${range}${flights.length ? ` &middot; ${flights.map((f) => `<b>${esc(f)}</b>`).join(', ')}` : ''}</p>
