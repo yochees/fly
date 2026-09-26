@@ -1,6 +1,7 @@
 /** No JSX anywhere: Node runs the TypeScript directly, and it only strips
  *  types. Template strings keep the app build-free. */
 import { config } from '../config.ts';
+import { KINDS_CSS } from './kinds.ts';
 
 export function esc(v: unknown): string {
   return String(v ?? '')
@@ -317,6 +318,7 @@ pre {
   padding: .9rem; overflow-x: auto; font-size: 12px;
   font-family: ui-monospace, monospace;             /* raw payloads only */
 }
+${KINDS_CSS}
 `;
 
 /** Composing a new message, so mailto is the right gesture here. */

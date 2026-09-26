@@ -1,6 +1,6 @@
 import { CSS, esc } from './html.ts';
 import { tripCard, type View } from './trip.ts';
-import { KINDS_CSS, VARIANTS } from './kinds.ts';
+import { VARIANTS } from './kinds.ts';
 import { albaniaTrip, albaniaSegments, albaniaCar } from './albania.ts';
 
 export type VariantQuery = { view: View; car: boolean; only: number | null; theme: 'light' | 'dark' | null };
@@ -40,7 +40,7 @@ export function variantsPage(q: VariantQuery): string {
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <title>Kind variants</title>
-<style>${CSS}${KINDS_CSS}
+<style>${CSS}
   .variants { padding: 2rem 1rem 4rem; max-width: 120rem; margin: 0 auto; }
   .variants > h1 { margin-bottom: .3rem; }
   .grid { display: grid; gap: 2rem 1.5rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 25rem), 1fr)); align-items: start; }

@@ -249,18 +249,21 @@ document.addEventListener('keydown', (e) => {
 });
 </script>`;
 
+const DEFAULT_VARIANT = 6;
+
 export type CardOptions = {
   /** Where the calendar links point. Defaults to this trip's own files. */
   icsBase?: string;
   /** The share box and the trip id belong on a real page, not in a demo. */
   chrome?: boolean;
-  /** One of the /variants styles that mark each kind of booking (kinds.ts). */
+  /** Which of the /variants styles marks each kind of booking (kinds.ts). */
   variant?: number;
 };
 
 /** The card itself, so the landing page can show a real one, not a picture. */
 export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardOptions = {}): string {
-  const { chrome = true, variant } = options;
+  // Style 6 is the one chosen: colour per kind, every kind in a chip.
+  const { chrome = true, variant = DEFAULT_VARIANT } = options;
   const kinds = !!variant;
   const range = trip.startDate
     ? `${dayLabel(trip.startDate)}${trip.endDate && trip.endDate !== trip.startDate ? ` &ndash; ${dayLabel(trip.endDate)}` : ''}`
