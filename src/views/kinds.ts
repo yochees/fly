@@ -22,16 +22,25 @@ export const KIND_NAME: Record<string, string> = {
   flight: 'Flight', ferry: 'Ferry', bus: 'Bus', train: 'Train', car: 'Car hire', hotel: 'Stay', other: 'Booking',
 };
 
+export const PIN = svg('<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>');
+
 export const kindIcon = (kind: string) => `<span class="ki">${KIND_ICON[kind] ?? KIND_ICON.other}</span>`;
 export const kindLabel = (kind: string) => `<span class="kind">${KIND_ICON[kind] ?? KIND_ICON.other}${KIND_NAME[kind] ?? 'Booking'}</span>`;
 
-export const VARIANTS: Array<{ n: number; name: string; idea: string }> = [
+export const VARIANTS: Array<{ n: number; name: string; idea: string; base?: number }> = [
   { n: 1, name: 'Icons on the rail', idea: 'The dot at each departure becomes the vehicle. One colour, shape does the work.' },
   { n: 2, name: 'Colour per kind', idea: 'Each journey paints its stretch of the rail in its own colour; stays are warm and dotted.' },
   { n: 3, name: 'Labels', idea: 'The rail stays as it is. A tinted label in front of each line names the kind.' },
   { n: 4, name: 'Cards', idea: 'No rail. Every journey and every stay is its own tinted block with the icon in front.' },
   { n: 5, name: 'Line patterns', idea: 'The rail itself changes: solid for a flight, waves for a ferry, dashes for a bus.' },
+  { n: 6, name: 'Colour per kind, in chips', idea: 'Style 2, every kind in a tinted chip, a hotel reads as a Stay, and the place is as big as the time, with a pin.', base: 2 },
 ];
+
+/** The classes a card carries for a variant: its own, plus the one it builds on. */
+export const variantClass = (n: number) => {
+  const base = VARIANTS.find((v) => v.n === n)?.base;
+  return `kinds${base ? ` kinds-${base}` : ''} kinds-${n}`;
+};
 
 /** Waves for the ferry line in variant 5. Grey that works on both themes. */
 const WAVE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='10'%3E%3Cpath d='M3 0q3 2.5 0 5t0 5' fill='none' stroke='%237d8a90' stroke-width='1.6'/%3E%3C/svg%3E")`;
@@ -62,6 +71,8 @@ export const KINDS_CSS = `
 /* ---- shared by every variant ---- */
 .leg { position: relative; }
 .ki, .kind { display: none; }
+.place svg { display: none; }
+.where-extra { font-size: 14px; }
 .ki svg, .kind svg { width: 100%; height: 100%; display: block; }
 .span .tag svg { display: none; }
 .kind { align-items: center; gap: .3rem; font-weight: 500; }
@@ -188,4 +199,25 @@ export const KINDS_CSS = `
   width: 22px; height: 22px; padding: 3.5px; border-radius: 50%;
   background: var(--paper); color: var(--muted); box-shadow: 0 0 0 2px var(--paper);
 }
+
+/* ---- 6. style 2, every kind in a chip ---- */
+.kinds-6 .hop .kind, .kinds-6 .span .tag {
+  display: inline-flex; align-items: center; gap: .3rem; font-size: 12px; font-weight: 500; text-transform: uppercase;
+  color: var(--k); background: color-mix(in srgb, var(--k) 13%, var(--paper));
+  border-radius: 999px; padding: .12rem .55rem .12rem .45rem; margin-right: .4rem; vertical-align: .05em;
+}
+.kinds-6 .hop .kind svg, .kinds-6 .span .tag svg { width: 13px; height: 13px; margin: 0; display: block; }
+/* The chip already says Stay, so the heading above the nights goes. */
+.kinds-6 .stay[data-kind] .k { display: none; }
+.kinds-6 .stay[data-kind] .v { margin-top: 0; }
+
+/* The place is what you look for at a glance, as much as the time. */
+.kinds-6 .place {
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-size: var(--when-size); line-height: var(--when-line); font-weight: 700; letter-spacing: -.015em; color: var(--ink);
+}
+.kinds-6 .place b { font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.kinds-6 .place svg { display: block; width: 16px; height: 16px; flex: none; color: var(--muted); }
+.kinds-6 .where { margin-top: 0; }
+.kinds-6 .where-extra { color: var(--muted); margin-top: .05rem; }
 `;

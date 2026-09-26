@@ -1,6 +1,6 @@
 import { esc, page, copyable, type ShareMeta } from './html.ts';
 import { config } from '../config.ts';
-import { kindIcon, kindLabel, KIND_ICON } from './kinds.ts';
+import { kindIcon, kindLabel, variantClass, KIND_ICON, KIND_NAME, PIN } from './kinds.ts';
 
 type Segment = {
   kind: string; carrier: string | null; carrierName: string | null; number: string | null;
@@ -80,6 +80,10 @@ function nightsBetween(arrive: string, depart: string): number {
   return Math.max(0, Math.round((d - a) / 86_400_000));
 }
 
+/** The kind styles put the place on its own line, with a pin, apart from the ref and names. */
+const placeHtml = (city: string | null, code: string | null) =>
+  `<span class="place">${PIN}<span>${esc(city ?? '')}</span>${code ? ` <b>${esc(code)}</b>` : ''}</span>`;
+
 function stopHtml(cls: string, when: string, where: string): string {
   return `<div class="stop ${cls}"><div class="when nums">${when}</div><div class="where">${where}</div></div>`;
 }
@@ -92,7 +96,8 @@ const KIND_LABEL: Record<string, string> = { hotel: 'Hotel', car: 'Car hire' };
  * owner page, where they are what you actually need at the desk.
  */
 function spanHtml(s: Segment, view: View, kinds = false): string {
-  const kind = KIND_LABEL[s.kind] ?? 'Booking';
+  // The kind styles call a hotel a Stay: an Airbnb is not a hotel.
+  const kind = (kinds ? KIND_NAME[s.kind] : KIND_LABEL[s.kind]) ?? 'Booking';
   const when = s.departLocal && s.arriveLocal
     ? `${dayLabel(s.departLocal)} ${time(s.departLocal)} to ${dayLabel(s.arriveLocal)} ${time(s.arriveLocal)}`
     : s.departLocal ? `${dayLabel(s.departLocal)} ${time(s.departLocal)}` : '';
@@ -170,10 +175,12 @@ function legHtml(s: Segment, view: View, isFirstOfDay: boolean, kinds = false): 
   const arriveSameDay = s.departLocal && s.arriveLocal && s.departLocal.slice(0, 10) === s.arriveLocal.slice(0, 10);
 
   const parts = [
-    stopHtml('', departWhen, `${esc(s.fromCity ?? '')} <b>${esc(s.fromCode ?? '')}</b>${departExtra ? ` &middot; ${departExtra}` : ''}`),
+    stopHtml('', departWhen, kinds
+      ? `${placeHtml(s.fromCity, s.fromCode)}${departExtra ? `<div class="where-extra">${departExtra}</div>` : ''}`
+      : `${esc(s.fromCity ?? '')} <b>${esc(s.fromCode ?? '')}</b>${departExtra ? ` &middot; ${departExtra}` : ''}`),
     `<div class="hop">${kinds ? `${kindIcon(s.kind)}${kindLabel(s.kind)}` : ''}${[duration ? `<b>${duration}</b>` : '', flight ? copyable(flight) : '', s.carrierName ? esc(s.carrierName) : ''].filter(Boolean).join(' &middot; ')}</div>`,
     stopHtml('arrive', !s.arriveLocal || arriveSameDay ? time(s.arriveLocal) : `${dayLabel(s.arriveLocal)} &middot; ${time(s.arriveLocal)}`,
-      `${esc(s.toCity ?? '')} <b>${esc(s.toCode ?? '')}</b>`),
+      kinds ? placeHtml(s.toCity, s.toCode) : `${esc(s.toCity ?? '')} <b>${esc(s.toCode ?? '')}</b>`),
   ];
   // Wrapped, so a variant can draw the whole leg as one thing.
   return kinds
@@ -288,7 +295,7 @@ export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardO
 </div>`);
   }
 
-  return `<div class="card${kinds ? ` kinds kinds-${variant}` : ''}">
+  return `<div class="card${variant ? ` ${variantClass(variant)}` : ''}">
 ${view === 'private' && trip.needsReview ? '<div class="flag">Some details were unclear when this was read. Check the times against your ticket.</div>' : ''}
 <h1>${esc(trip.title ?? 'Trip')}</h1>
 <p class="sub">${range}${flights.length ? ` &middot; ${flights.map((f) => `<b>${esc(f)}</b>`).join(', ')}` : ''}</p>
