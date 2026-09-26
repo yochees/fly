@@ -1,6 +1,6 @@
 import { esc, page, copyable, type ShareMeta } from './html.ts';
 import { config } from '../config.ts';
-import { kindIcon, kindLabel, variantClass, KIND_ICON, KIND_NAME, PIN } from './kinds.ts';
+import { kindIcon, kindLabel, variantClass, KIND_ICON, KIND_NAME } from './kinds.ts';
 
 type Segment = {
   kind: string; carrier: string | null; carrierName: string | null; number: string | null;
@@ -80,9 +80,24 @@ function nightsBetween(arrive: string, depart: string): number {
   return Math.max(0, Math.round((d - a) / 86_400_000));
 }
 
-/** The kind styles put the place on its own line, with a pin, apart from the ref and names. */
-const placeHtml = (city: string | null, code: string | null) =>
-  `<span class="place">${PIN}<span>${esc(city ?? '')}</span>${code ? ` <b>${esc(code)}</b>` : ''}</span>`;
+/** "30 Sept, Wed", for the kind styles, where the date follows the place. */
+const dayAfterPlace = (v: string) => {
+  const d = new Date(`${v.slice(0, 10)}T00:00:00Z`);
+  const day = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const weekday = d.toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' });
+  return `${day}, ${weekday}`;
+};
+
+/**
+ * A stop in the kind styles: "Shkodër • 30 Sept, Wed · 07:00" on one line, as
+ * big as each other, with the ref and the names in a small line under it.
+ * The date shows only when it changes; the time always does.
+ */
+function placeStopHtml(cls: string, city: string | null, code: string | null, dateOf: string | null, at: string | null, extra: string): string {
+  const place = `${esc(city ?? '')}${code ? ` <span class="code">${esc(code)}</span>` : ''}`;
+  const when = `${dateOf ? `${dayAfterPlace(dateOf)} &middot; ` : ''}${time(at)}`;
+  return `<div class="stop ${cls}"><div class="when nums">${place ? `${place} <span class="sep">&bull;</span> ` : ''}${when}</div>${extra ? `<div class="where">${extra}</div>` : ''}</div>`;
+}
 
 function stopHtml(cls: string, when: string, where: string): string {
   return `<div class="stop ${cls}"><div class="when nums">${when}</div><div class="where">${where}</div></div>`;
@@ -147,7 +162,7 @@ function stayHtml(prev: Segment, next: Segment, spans: Segment[], view: View, ki
   const mark = kinds && filler ? ` data-kind="${esc(filler)}"` : '';
   return `<div class="stay"${mark}>
   ${kinds && isStay ? kindIcon(filler ?? 'hotel') : ''}
-  <div class="k">${isStay ? 'Stay' : 'Connection'}</div>
+  ${kinds && mark ? '' : `<div class="k">${isStay ? 'Stay' : 'Connection'}</div>`}
   <div class="v">${esc(label)}</div>
   ${spans.map((s) => spanHtml(s, view, kinds)).join('')}
 </div>`;
@@ -174,14 +189,20 @@ function legHtml(s: Segment, view: View, isFirstOfDay: boolean, kinds = false): 
 
   const arriveSameDay = s.departLocal && s.arriveLocal && s.departLocal.slice(0, 10) === s.arriveLocal.slice(0, 10);
 
-  const parts = [
-    stopHtml('', departWhen, kinds
-      ? `${placeHtml(s.fromCity, s.fromCode)}${departExtra ? `<div class="where-extra">${departExtra}</div>` : ''}`
-      : `${esc(s.fromCity ?? '')} <b>${esc(s.fromCode ?? '')}</b>${departExtra ? ` &middot; ${departExtra}` : ''}`),
-    `<div class="hop">${kinds ? `${kindIcon(s.kind)}${kindLabel(s.kind)}` : ''}${[duration ? `<b>${duration}</b>` : '', flight ? copyable(flight) : '', s.carrierName ? esc(s.carrierName) : ''].filter(Boolean).join(' &middot; ')}</div>`,
-    stopHtml('arrive', !s.arriveLocal || arriveSameDay ? time(s.arriveLocal) : `${dayLabel(s.arriveLocal)} &middot; ${time(s.arriveLocal)}`,
-      kinds ? placeHtml(s.toCity, s.toCode) : `${esc(s.toCity ?? '')} <b>${esc(s.toCode ?? '')}</b>`),
-  ];
+  const hopText = [duration ? `<b>${duration}</b>` : '', flight ? copyable(flight) : '', s.carrierName ? esc(s.carrierName) : ''].filter(Boolean).join(' &middot; ');
+  const parts = kinds
+    ? [
+      placeStopHtml('', s.fromCity, s.fromCode, isFirstOfDay ? s.departLocal : null, s.departLocal, departExtra),
+      // The chip and the text are two flex items, so the chip sits on the text's centre line.
+      `<div class="hop">${kindIcon(s.kind)}${kindLabel(s.kind)}<span class="hop-text">${hopText}</span></div>`,
+      placeStopHtml('arrive', s.toCity, s.toCode, arriveSameDay ? null : s.arriveLocal, s.arriveLocal, ''),
+    ]
+    : [
+      stopHtml('', departWhen, `${esc(s.fromCity ?? '')} <b>${esc(s.fromCode ?? '')}</b>${departExtra ? ` &middot; ${departExtra}` : ''}`),
+      `<div class="hop">${hopText}</div>`,
+      stopHtml('arrive', !s.arriveLocal || arriveSameDay ? time(s.arriveLocal) : `${dayLabel(s.arriveLocal)} &middot; ${time(s.arriveLocal)}`,
+        `${esc(s.toCity ?? '')} <b>${esc(s.toCode ?? '')}</b>`),
+    ];
   // Wrapped, so a variant can draw the whole leg as one thing.
   return kinds
     ? `<div class="leg" data-kind="${esc(s.kind)}">${kindIcon(s.kind)}\n${parts.join('\n')}\n</div>`

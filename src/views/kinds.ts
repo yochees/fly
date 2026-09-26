@@ -22,8 +22,6 @@ export const KIND_NAME: Record<string, string> = {
   flight: 'Flight', ferry: 'Ferry', bus: 'Bus', train: 'Train', car: 'Car hire', hotel: 'Stay', other: 'Booking',
 };
 
-export const PIN = svg('<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>');
-
 export const kindIcon = (kind: string) => `<span class="ki">${KIND_ICON[kind] ?? KIND_ICON.other}</span>`;
 export const kindLabel = (kind: string) => `<span class="kind">${KIND_ICON[kind] ?? KIND_ICON.other}${KIND_NAME[kind] ?? 'Booking'}</span>`;
 
@@ -33,7 +31,7 @@ export const VARIANTS: Array<{ n: number; name: string; idea: string; base?: num
   { n: 3, name: 'Labels', idea: 'The rail stays as it is. A tinted label in front of each line names the kind.' },
   { n: 4, name: 'Cards', idea: 'No rail. Every journey and every stay is its own tinted block with the icon in front.' },
   { n: 5, name: 'Line patterns', idea: 'The rail itself changes: solid for a flight, waves for a ferry, dashes for a bus.' },
-  { n: 6, name: 'Colour per kind, in chips', idea: 'Style 2, every kind in a tinted chip, a hotel reads as a Stay, and the place is as big as the time, with a pin.', base: 2 },
+  { n: 6, name: 'Colour per kind, in chips', idea: 'Style 2 with every kind in a tinted chip, a hotel read as a Stay, and the place first on the line, as big as the time.', base: 2 },
 ];
 
 /** The classes a card carries for a variant: its own, plus the one it builds on. */
@@ -71,8 +69,14 @@ export const KINDS_CSS = `
 /* ---- shared by every variant ---- */
 .leg { position: relative; }
 .ki, .kind { display: none; }
-.place svg { display: none; }
-.where-extra { font-size: 14px; }
+.when .code, .when .sep { color: var(--muted); font-weight: 500; }
+.when .sep { color: var(--faint); }
+/* Chip and text as two flex items: the chip centres on the line, whatever its size. */
+.kinds .hop, .kinds .span-top { display: flex; align-items: center; flex-wrap: wrap; row-gap: .2rem; }
+.kinds .hop .kind, .kinds .span .tag { vertical-align: baseline; }
+.kinds .span-top b { margin-left: .1rem; }
+/* The chip says Stay, so the stay has no heading of its own. */
+.kinds .stay[data-kind] .v { margin-top: 0; }
 .ki svg, .kind svg { width: 100%; height: 100%; display: block; }
 .span .tag svg { display: none; }
 .kind { align-items: center; gap: .3rem; font-weight: 500; }
@@ -113,7 +117,7 @@ export const KINDS_CSS = `
   width: 24px; height: 24px; padding: 4px; border-radius: 50%;
   background: var(--paper); color: var(--muted); box-shadow: 0 0 0 3px var(--paper);
 }
-.kinds-1 .hop .kind { display: inline-flex; color: var(--ink); margin-right: .15rem; }
+.kinds-1 .hop .kind { display: inline-flex; color: var(--ink); margin-right: .35rem; }
 .kinds-1 .hop .kind svg { display: none; }
 
 /* ---- 2. colour per kind ---- */
@@ -192,7 +196,7 @@ export const KINDS_CSS = `
   width: 22px; height: 22px; padding: 3.5px; border-radius: 50%; z-index: 1;
   background: var(--paper); color: var(--ink); box-shadow: 0 0 0 2px var(--paper);
 }
-.kinds-5 .hop .kind { display: inline-flex; color: var(--ink); margin-right: .15rem; }
+.kinds-5 .hop .kind { display: inline-flex; color: var(--ink); margin-right: .35rem; }
 .kinds-5 .hop .kind svg { display: none; }
 .kinds-5 .stay > .ki {
   display: block; position: absolute; left: calc(var(--rail-x) - 10px); top: .75rem;
@@ -207,17 +211,4 @@ export const KINDS_CSS = `
   border-radius: 999px; padding: .12rem .55rem .12rem .45rem; margin-right: .4rem; vertical-align: .05em;
 }
 .kinds-6 .hop .kind svg, .kinds-6 .span .tag svg { width: 13px; height: 13px; margin: 0; display: block; }
-/* The chip already says Stay, so the heading above the nights goes. */
-.kinds-6 .stay[data-kind] .k { display: none; }
-.kinds-6 .stay[data-kind] .v { margin-top: 0; }
-
-/* The place is what you look for at a glance, as much as the time. */
-.kinds-6 .place {
-  display: inline-flex; align-items: center; gap: .3rem;
-  font-size: var(--when-size); line-height: var(--when-line); font-weight: 700; letter-spacing: -.015em; color: var(--ink);
-}
-.kinds-6 .place b { font-weight: 500; color: var(--muted); letter-spacing: 0; }
-.kinds-6 .place svg { display: block; width: 16px; height: 16px; flex: none; color: var(--muted); }
-.kinds-6 .where { margin-top: 0; }
-.kinds-6 .where-extra { color: var(--muted); margin-top: .05rem; }
 `;
