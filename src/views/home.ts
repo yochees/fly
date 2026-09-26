@@ -47,5 +47,5 @@ document.addEventListener('keydown', (e) => {
 });
 </script>`;
 
-  return page('fly - forward a ticket, get a page', body);
+  return page('fly - forward a ticket, get a page', body, { image: true });
 }

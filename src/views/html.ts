@@ -327,7 +327,11 @@ const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto
 /** What a link preview says. A trip page passes its own; the rest get the landing sentence. */
 export type ShareMeta = { title: string; description: string; url: string };
 
-function meta(share?: ShareMeta): string {
+/**
+ * The sample-trip picture belongs to the landing page only: on a shared trip
+ * it showed somebody else's journey, Vilnius to Lisbon, as the preview.
+ */
+function meta(share: ShareMeta | undefined, image: boolean): string {
   const url = config.publicBaseUrl;
   const address = config.openmail.inboxAddress || 'fly@omail.sh';
   const title = share?.title ?? 'Forward tickets and get a shareable agenda';
@@ -337,22 +341,22 @@ function meta(share?: ShareMeta): string {
 <meta property="og:site_name" content="fly">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
-<meta property="og:url" content="${esc(share?.url ?? url)}">
+<meta property="og:url" content="${esc(share?.url ?? url)}">${image ? `
 <meta property="og:image" content="${esc(url)}/og.png">
 <meta property="og:image:width" content="2400">
 <meta property="og:image:height" content="1260">
-<meta property="og:image:alt" content="A trip page: two flights, a hotel and a car on one timeline.">
-<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image:alt" content="A trip page: two flights, a hotel and a car on one timeline.">` : ''}
+<meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}">
 <meta name="twitter:title" content="${esc(title)}">
-<meta name="twitter:description" content="${esc(description)}">
-<meta name="twitter:image" content="${esc(url)}/og.png">`;
+<meta name="twitter:description" content="${esc(description)}">${image ? `
+<meta name="twitter:image" content="${esc(url)}/og.png">` : ''}`;
 }
 
 /** Admin reads raw payloads and wide tables, so it gets its own width. */
-export function page(title: string, body: string, options: { wide?: boolean; share?: ShareMeta } = {}): string {
+export function page(title: string, body: string, options: { wide?: boolean; share?: ShareMeta; image?: boolean } = {}): string {
   return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-${meta(options.share)}
+${meta(options.share, options.image ?? false)}
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
