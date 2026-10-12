@@ -8,6 +8,7 @@ import { homePage } from './views/home.ts';
 import { privacyPage } from './views/privacy.ts';
 import { ogPage } from './views/og.ts';
 import { ogPngBytes } from './og-image.ts';
+import { FAVICON_SVG } from './favicon.ts';
 import { tripIcs, flightIcsFiles } from './views/trip.ts';
 import { sampleTrip, sampleSegments } from './views/sample.ts';
 import { variantsPage } from './views/variants.ts';
@@ -22,6 +23,9 @@ app.get('/privacy', (c) => c.html(privacyPage()));
 app.get('/og', (c) => c.html(ogPage(Number(c.req.query('scale') ?? 1))));
 app.get('/og.png', () => new Response(ogPngBytes().buffer as ArrayBuffer, {
   headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' },
+}));
+app.get('/favicon.svg', () => new Response(FAVICON_SVG, {
+  headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400' },
 }));
 
 /**
