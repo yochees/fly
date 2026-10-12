@@ -1,4 +1,4 @@
-import { page, copyable } from './html.ts';
+import { page, copyable, FOOTER } from './html.ts';
 import { config } from '../config.ts';
 import { tripCard } from './trip.ts';
 import { sampleTrip, sampleSegments } from './sample.ts';
@@ -14,10 +14,14 @@ export function homePage(): string {
       chrome: false,
     });
 
-  const body = `<div class="card home">
-  <h1>Forward your tickets and bookings to ${copyable(address, 'addr')} and get a clean, shareable agenda.</h1>
+  const body = `<div class="home-grid">
+<div class="intro">
+  <h1>Your trip, all in one place</h1>
+  <p class="lede">Forward your tickets and bookings to ${copyable(address, 'addr')} and get a clean, shareable agenda.</p>
+  ${FOOTER}
 </div>
 
+<div class="showcase">
 <div class="sample-head">
   <span class="sample-label">Sample trip</span>
   <div class="toggle" role="group" aria-label="Which view">
@@ -29,6 +33,8 @@ export function homePage(): string {
 <div class="sample" data-view="private">
   <div class="private-only">${cardFor('private')}</div>
   <div class="public-only">${cardFor('public')}</div>
+</div>
+</div>
 </div>
 
 <script>
@@ -47,5 +53,5 @@ document.addEventListener('keydown', (e) => {
 });
 </script>`;
 
-  return page('fly - forward a ticket, get a page', body, { image: true });
+  return page('fly - forward a ticket, get a page', body, { image: true, home: true });
 }

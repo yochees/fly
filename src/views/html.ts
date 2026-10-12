@@ -69,6 +69,8 @@ export const CSS = `
   --accent-soft: #dcece7;
   --accent-line: #a6ccc3;
   --shadow: 0 1px 2px rgba(15,19,22,.05), 0 10px 28px -22px rgba(15,19,22,.45);
+  --shadow-lift: 0 2px 6px rgba(15,19,22,.06), 0 24px 60px -20px rgba(15,19,22,.28);
+  --sample-paper: #fafafa;
   --sans: "DM Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   /* Timeline geometry, so the rail and the dots cannot drift apart. */
@@ -92,6 +94,8 @@ export const CSS = `
     --accent-soft: #14312b;
     --accent-line: #2d5c53;
     --shadow: 0 1px 2px rgba(0,0,0,.5), 0 12px 32px -24px rgba(0,0,0,1);
+    --shadow-lift: 0 2px 6px rgba(0,0,0,.5), 0 24px 60px -20px rgba(0,0,0,.9);
+    --sample-paper: var(--paper);
   }
 }
 :root[data-theme="dark"] {
@@ -106,6 +110,8 @@ export const CSS = `
   --accent-soft: #14312b;
   --accent-line: #2d5c53;
   --shadow: 0 1px 2px rgba(0,0,0,.5), 0 12px 32px -24px rgba(0,0,0,1);
+  --shadow-lift: 0 2px 6px rgba(0,0,0,.5), 0 24px 60px -20px rgba(0,0,0,.9);
+  --sample-paper: var(--paper);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -122,6 +128,7 @@ body {
 }
 .wrap { max-width: 34rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
 .wrap-wide { max-width: 80rem; }
+.wrap-home { max-width: 70rem; }
 .nums { font-variant-numeric: tabular-nums; }
 a { color: var(--accent); }
 
@@ -129,7 +136,12 @@ a { color: var(--accent); }
   background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
   box-shadow: var(--shadow); padding: 2rem 1.8rem 1.5rem;
 }
-@media (max-width: 30rem) { .card { padding: 1.5rem 1.15rem 1.2rem; } }
+/* On a phone the card is the page: no frame, the whole canvas takes its paper. */
+@media (max-width: 30rem) {
+  html, body { background: var(--paper); }
+  html { scrollbar-color: var(--line) var(--paper); }
+  .card { background: none; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
+}
 
 h1 { font-size: 24px; font-weight: 700; letter-spacing: -.025em; margin: 0 0 .2rem; text-wrap: balance; }
 .sub { color: var(--muted); font-size: 14px; margin: 0 0 1.6rem; }
@@ -282,9 +294,46 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -.025em; margin: 0 0 .2r
 /* ---- landing ---- */
 .card + .card { margin-top: 1.25rem; }
 
-.home h1 {
-  font-size: 24px; line-height: 1.45; font-weight: 500; letter-spacing: -.015em;
-  margin: 0; text-wrap: pretty;
+/* The landing page stands on white, so only the sample trip is lifted off it. */
+html:has(.wrap-home), html:has(.wrap-home) body { background: var(--paper); }
+html:has(.wrap-home) { scrollbar-color: var(--line) var(--paper); }
+
+/* Pitch on the left, standing on the page; the sample trip framed on the right.
+   Too narrow for two columns, they stack in one column the trip pages' width. */
+.home-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 34rem);
+  gap: 4rem; align-items: start; }
+/* The pitch column is at least a screen tall, so its footer rests at the foot
+   of the first screen; on a window too short for both, it follows the lede. */
+.intro { min-height: calc(100vh - 2.5rem);
+  display: flex; flex-direction: column; padding: 4.2rem 0 2.5rem; }
+.intro .site-footer { margin-top: auto; padding-top: 2.5rem; }
+.wrap-home > .site-footer { display: none; }
+/* Drops the sample so its label's capitals line up with the title's lowercase. */
+.showcase { padding: 3.15rem 0 2.5rem; }
+/* The grid ends the page, so scrolled to the end the footer keeps its gap. */
+.wrap-home { padding-bottom: 0; }
+.intro h1 { font-size: 64px; line-height: 1.02; font-weight: 700; letter-spacing: -.035em;
+  margin: 0 0 1.2rem; text-wrap: balance; }
+.intro .lede { font-size: 20px; line-height: 1.5; color: var(--muted); margin: 0; text-wrap: pretty; }
+@media (max-width: 60rem) {
+  .wrap-home { max-width: 34rem; padding-bottom: 4rem; }
+  .wrap-home > .site-footer { display: block; }
+  .intro .site-footer { display: none; }
+  .showcase { padding: 0; }
+  .home-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .intro { min-height: 0; display: block; padding: 1rem .25rem .5rem; }
+  .intro h1 { font-size: 52px; }
+}
+/* On a phone the pitch stands on the page and the sample trip is the one
+   framed thing, shown smaller so it reads as an example. */
+@media (max-width: 30rem) {
+  .intro { padding: .5rem 0 .5rem; }
+  .intro h1 { font-size: 40px; margin-bottom: .9rem; }
+  .intro .lede { font-size: 18px; }
+  .sample .card {
+    background: var(--sample-paper); border: 1px solid var(--line); border-radius: 16px;
+    box-shadow: var(--shadow-lift); padding: 1.5rem 1.15rem 1.2rem; zoom: .85;
+  }
 }
 /* Inline, not a chip: it sits in the sentence and only the colour marks it. */
 .addr { font-weight: 700; color: var(--accent);
@@ -308,6 +357,8 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -.025em; margin: 0 0 .2r
 .sample[data-view="private"] > .public-only { display: none; }
 .sample[data-view="public"] > .private-only { display: none; }
 .sample h1 { font-size: 20px; }
+/* The timeline masks its rail with --paper, so the card hands it its own shade. */
+.sample .card { --paper: var(--sample-paper); background: var(--paper); box-shadow: var(--shadow-lift); }
 
 /* ---- admin tables ---- */
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
@@ -322,7 +373,7 @@ ${KINDS_CSS}
 `;
 
 /** Composing a new message, so mailto is the right gesture here. */
-const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto:fly@diz.lt?subject=fly%20feedback">fly@diz.lt</a> &middot; <a href="/privacy">Privacy policy</a></footer>`;
+export const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto:fly@diz.lt?subject=fly%20feedback">fly@diz.lt</a> &middot; <a href="/privacy">Privacy policy</a></footer>`;
 
 /** What a link preview says. A trip page passes its own; the rest get the landing sentence. */
 export type ShareMeta = { title: string; description: string; url: string };
@@ -352,8 +403,8 @@ function meta(share: ShareMeta | undefined, image: boolean): string {
 <meta name="twitter:image" content="${esc(url)}/og.png">` : ''}`;
 }
 
-/** Admin reads raw payloads and wide tables, so it gets its own width. */
-export function page(title: string, body: string, options: { wide?: boolean; share?: ShareMeta; image?: boolean } = {}): string {
+/** Admin reads raw payloads and wide tables, and the landing page sits in two columns, so each gets its own width. */
+export function page(title: string, body: string, options: { wide?: boolean; home?: boolean; share?: ShareMeta; image?: boolean } = {}): string {
   return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 ${meta(options.share, options.image ?? false)}
@@ -361,5 +412,5 @@ ${meta(options.share, options.image ?? false)}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <title>${esc(title)}</title><style>${CSS}</style></head>
-<body><div class="wrap${options.wide ? ' wrap-wide' : ''}">${body}${FOOTER}</div>${COPY_JS}</body></html>`;
+<body><div class="wrap${options.wide ? ' wrap-wide' : options.home ? ' wrap-home' : ''}">${body}${FOOTER}</div>${COPY_JS}</body></html>`;
 }
