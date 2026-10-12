@@ -360,6 +360,74 @@ html:has(.wrap-home) { scrollbar-color: var(--line) var(--paper); }
 /* The timeline masks its rail with --paper, so the card hands it its own shade. */
 .sample .card { --paper: var(--sample-paper); background: var(--paper); box-shadow: var(--shadow-lift); }
 
+/* ---- demo: email, paper plane, trip ---- */
+.replay { font: inherit; font-size: 12px; text-transform: none; color: var(--faint);
+  background: none; border: 0; padding: 0 0 0 .5rem; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px; }
+.replay:hover { color: var(--accent); }
+.sample { position: relative; }
+.demo { display: none; position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.play .demo { display: block; }
+/* The plane may swing past the edge of a phone screen; it must not widen the page. */
+html:has(.wrap-home) body { overflow-x: clip; }
+
+.mail {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: var(--shadow-lift); overflow: hidden; font-size: 14px;
+  transform-origin: 50% 50%;
+}
+.mail-bar { display: flex; align-items: center; gap: .6rem; padding: .6rem .9rem;
+  background: var(--rule); color: var(--muted); font-size: 12px; font-weight: 500; }
+.mail-dots { display: inline-flex; gap: 5px; }
+.mail-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.mail-row { display: flex; gap: .75rem; padding: .55rem 1.1rem; border-bottom: 1px solid var(--rule); }
+.mail-k { color: var(--faint); min-width: 3.6rem; }
+.mail-to { font-weight: 700; color: var(--accent); }
+.mail-body { padding: .9rem 1.1rem .4rem; color: var(--ink); }
+.mail-body p { margin: 0 0 .8rem; }
+.mail-files { display: flex; flex-wrap: wrap; gap: .4rem; }
+.mail-file { display: inline-flex; align-items: center; gap: .3rem; font-size: 12px; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 8px; padding: .25rem .5rem; }
+.mail-foot { display: flex; justify-content: flex-end; padding: .9rem 1.1rem 1rem; }
+.mail-send { background: var(--accent); color: var(--paper); font-weight: 500; font-size: 14px;
+  border-radius: 999px; padding: .4rem 1.2rem; }
+
+/* The plane takes off from the middle of the email and climbs out to the right. */
+.flight { position: absolute; left: calc(50% - 30px); top: -40px; width: 310px; height: 220px; }
+.trail { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; opacity: 0; }
+.trail-line { fill: none; stroke: var(--accent-line); stroke-width: 2; stroke-dasharray: 3 6; stroke-linecap: round; }
+.trail-reveal { fill: none; stroke: #fff; stroke-width: 6; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.plane { position: absolute; left: 0; top: 0; opacity: 0;
+  fill: var(--paper); stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round;
+  offset-path: path('M30 200 C 90 230, 150 150, 120 110 S 200 30, 300 60'); offset-rotate: auto 45deg; }
+
+.play .mail { animation: mail-in .45s ease-out both, mail-fold .45s 2.2s ease-in both; }
+.play .mail-to { animation: type .9s .55s steps(12, end) both; }
+.play .mail-send { animation: press .3s 1.75s ease-in-out both; }
+.play .plane { animation: fly 1.3s 2.45s cubic-bezier(.45, 0, .3, 1) both; }
+.play .trail { animation: trail-fade 1.6s 2.45s linear both; }
+.play .trail-reveal { animation: draw 1.3s 2.45s cubic-bezier(.45, 0, .3, 1) both; }
+.play .sample > :not(.demo) { animation: result-in .6s 3.6s cubic-bezier(.2, .7, .3, 1) both; }
+
+@keyframes mail-in { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+@keyframes mail-fold {
+  to { opacity: 0; transform: scale(.12) rotate(-12deg); border-radius: 40px; }
+}
+@keyframes type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes press { 50% { transform: scale(.92); filter: brightness(.85); } }
+@keyframes fly {
+  0% { offset-distance: 0%; opacity: 0; transform: scale(.6); }
+  12% { opacity: 1; transform: scale(1); }
+  85% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; transform: scale(.8); }
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes trail-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes result-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
 /* ---- admin tables ---- */
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
