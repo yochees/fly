@@ -260,7 +260,7 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -.025em; margin: 0 0 .2r
 
 /* ---- site footer ---- */
 .site-footer {
-  margin: 1.6rem .25rem 0; font-size: 12px; color: var(--faint);
+  margin: 1.6rem .25rem 0; font-size: 13px; color: var(--faint);
 }
 .site-footer a { color: var(--faint); text-decoration: underline; text-underline-offset: 2px; }
 .site-footer a:hover { color: var(--accent); }
@@ -441,7 +441,7 @@ ${KINDS_CSS}
 `;
 
 /** Composing a new message, so mailto is the right gesture here. */
-export const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto:fly@diz.lt?subject=fly%20feedback">fly@diz.lt</a> &middot; <a href="/privacy">Privacy policy</a></footer>`;
+export const FOOTER = `<footer class="site-footer">Got feedback? Share! <a href="mailto:fly@diz.lt?subject=fly%20feedback">fly@diz.lt</a> &middot; <a href="/privacy">Privacy policy</a> &middot; <a href="https://github.com/yochees/fly">GitHub</a></footer>`;
 
 /** What a link preview says. A trip page passes its own; the rest get the landing sentence. */
 export type ShareMeta = { title: string; description: string; url: string };
