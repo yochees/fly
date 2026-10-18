@@ -195,6 +195,7 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -.025em; margin: 0 0 .2r
   background-color: var(--paper);
   background-image: repeating-linear-gradient(var(--line) 0 4px, transparent 4px 9px);
 }
+.stay.long { padding-block: calc(1.2rem + var(--n) * .2rem); }
 .stay .k { font-size: 12px; letter-spacing: 0; text-transform: uppercase; color: var(--faint); }
 .stay .v { font-size: 16px; font-weight: 500; margin-top: .1rem; }
 

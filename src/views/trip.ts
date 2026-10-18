@@ -160,7 +160,10 @@ function stayHtml(prev: Segment, next: Segment, spans: Segment[], view: View, ki
   // The stay takes the kind of what fills it: a hotel over a car.
   const filler = spans.some((sp) => sp.kind === 'hotel') ? 'hotel' : spans[0]?.kind;
   const mark = kinds && filler ? ` data-kind="${esc(filler)}"` : '';
-  return `<div class="stay"${mark}>
+  // A night or more gets a longer stretch of rail than a connection, a little
+  // longer for each night, so a week away does not read like a layover.
+  const long = isStay ? ` long" style="--n:${Math.min(nights, 14)}` : '';
+  return `<div class="stay${long}"${mark}>
   ${kinds && isStay ? kindIcon(filler ?? 'hotel') : ''}
   ${kinds && mark ? '' : `<div class="k">${isStay ? 'Stay' : 'Connection'}</div>`}
   <div class="v">${esc(label)}</div>
