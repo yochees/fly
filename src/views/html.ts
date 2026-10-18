@@ -149,8 +149,15 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -.025em; margin: 0 0 .2r
 
 .flag {
   background: var(--accent-soft); color: var(--ink); border: 1px solid var(--accent-line);
-  border-radius: 10px; padding: .6rem .85rem; font-size: 14px; margin-bottom: 1.2rem;
+  border-radius: 10px; padding: .6rem 2.2rem .6rem .85rem; font-size: 14px; margin-bottom: 1.2rem;
+  position: relative;
 }
+.flag-x {
+  position: absolute; top: .3rem; right: .3rem; width: 1.8rem; height: 1.8rem;
+  border: 0; border-radius: 6px; background: none; color: var(--muted);
+  font: inherit; font-size: 18px; line-height: 1; cursor: pointer;
+}
+.flag-x:hover { color: var(--ink); background: var(--accent-line); }
 
 /* ---- timeline ---- */
 .rail { position: relative; padding-left: var(--gutter); }

@@ -241,6 +241,16 @@ function shareHtml(trip: Trip): string {
 </div>`;
 }
 
+/**
+ * The unclear-details warning. Once closed it stays closed for this trip, in
+ * this browser; the script right after it hides it before the first paint.
+ */
+function flagHtml(slug: string): string {
+  const key = JSON.stringify(`flag-dismissed:${slug}`);
+  return `<div class="flag" id="flag">Some details were unclear when this was read. Check the times against your ticket.<button type="button" class="flag-x" aria-label="Dismiss" onclick="try{localStorage.setItem(${esc(key)},'1')}catch(e){}this.parentNode.remove()">&times;</button></div>
+<script>try{if(localStorage.getItem(${key}))document.getElementById('flag').remove()}catch(e){}</script>`;
+}
+
 const MENU_JS = `<script>
 document.addEventListener('click', (e) => {
   for (const d of document.querySelectorAll('details[open]')) {
@@ -320,7 +330,7 @@ export function tripCard(trip: Trip, segs: Segment[], view: View, options: CardO
   }
 
   return `<div class="card${variant ? ` ${variantClass(variant)}` : ''}">
-${view === 'private' && trip.needsReview ? '<div class="flag">Some details were unclear when this was read. Check the times against your ticket.</div>' : ''}
+${view === 'private' && trip.needsReview ? flagHtml(trip.slug) : ''}
 <h1>${esc(trip.title ?? 'Trip')}</h1>
 ${range ? `<p class="sub"><b>${range}</b></p>` : ''}
 
